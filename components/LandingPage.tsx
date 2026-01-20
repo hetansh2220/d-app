@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Phone, ArrowRight, Heart, Headphones, Users } from "lucide-react"
+import { Phone, ArrowRight, Heart, Headphones, Users, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react"
 import { useState } from "react"
 
 export default function LandingPage() {
@@ -94,8 +94,8 @@ export default function LandingPage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <p className="text-xs font-semibold text-gray-600 mb-3 tracking-wider">WHAT WE DO</p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <p className="text-4xl font-semibold text-gray-600 mb-3 tracking-wider">WHAT WE DO</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
               Providing Hope And Help<br />During Challenging Times
             </h2>
             <Button variant="outline" className="border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-6 py-2 text-xs font-semibold rounded-full">
@@ -191,8 +191,8 @@ export default function LandingPage() {
       <section className="py-20 bg-[#f5f3e8]">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="text-xs font-semibold text-gray-600 mb-3 tracking-wider">OUR IMPACT</p>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+            <p className="text-4xl font-semibold text-gray-600 mb-3 tracking-wider">OUR IMPACT</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900">
               Together, we're making a difference
             </h2>
           </div>
@@ -374,6 +374,276 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Campaign Stories Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-4xl font-semibold text-gray-600 mb-3 tracking-wider">SUCCESS STORIES</p>
+            <h2 className="text-2xl md:text-5xl font-bold text-gray-900 mb-4">
+              Innovative Ideas Brought<br />To Life
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Discover how entrepreneurs and innovators turned their tech visions into reality with community backing
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Story Card 1 */}
+            <Card className="bg-white border-2 border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop" 
+                  alt="AI startup success"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  FUNDED
+                </div>
+              </div>
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    AI & Machine Learning
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">AI-Powered Health Assistant</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Built an AI app that helps patients track symptoms and get personalized health insights. Now serving 10K+ users.
+                </p>
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Raised</span>
+                    <span className="font-semibold text-gray-900">$125,000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-emerald-500 h-2 rounded-full" style={{width: '100%'}}></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>234 Backers</span>
+                    <span>Goal: $125,000</span>
+                  </div>
+                </div>
+                <Button variant="ghost" className="w-full justify-between text-gray-800 hover:bg-gray-50 font-semibold text-sm group">
+                  Read Full Story
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Story Card 2 */}
+            <Card className="bg-white border-2 border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop" 
+                  alt="SaaS platform"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-4 right-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  IN PROGRESS
+                </div>
+              </div>
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <span className="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    SaaS Platform
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Project Manager</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Revolutionary project management tool with automated workflows and AI-driven insights for remote teams.
+                </p>
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Raised</span>
+                    <span className="font-semibold text-gray-900">$68,500</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-emerald-500 h-2 rounded-full" style={{width: '68.5%'}}></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>156 Backers</span>
+                    <span>Goal: $100,000</span>
+                  </div>
+                </div>
+                <Button variant="ghost" className="w-full justify-between text-gray-800 hover:bg-gray-50 font-semibold text-sm group">
+                  Read Full Story
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Story Card 3 */}
+            <Card className="bg-white border-2 border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden group">
+              <div className="relative h-64 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=400&fit=crop" 
+                  alt="Mobile app development"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  FUNDED
+                </div>
+              </div>
+              <CardContent className="p-6">
+                <div className="mb-4">
+                  <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    Mobile App
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">EcoTrack - Carbon Footprint App</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Mobile app helping users track and reduce their carbon footprint through daily activities and challenges.
+                </p>
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Raised</span>
+                    <span className="font-semibold text-gray-900">$85,000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-emerald-500 h-2 rounded-full" style={{width: '100%'}}></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>412 Backers</span>
+                    <span>Goal: $85,000</span>
+                  </div>
+                </div>
+                <Button variant="ghost" className="w-full justify-between text-gray-800 hover:bg-gray-50 font-semibold text-sm group">
+                  Read Full Story
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* View All Stories Button */}
+          <div className="text-center mt-12">
+            <Button variant="outline" className="border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white px-8 py-3 text-sm font-semibold rounded-full">
+              VIEW ALL STORIES
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300">
+        <div className="container mx-auto px-6 py-16">
+          <div className="grid md:grid-cols-5 gap-8 mb-12">
+            {/* Brand Section */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">HR</span>
+                </div>
+                <span className="font-bold text-white text-lg">HOPE RISE</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="w-4 h-4 text-emerald-500" />
+                  <span>support@hoperise.com</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="w-4 h-4 text-emerald-500" />
+                  <span>+1 (555) 123-4567</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="w-4 h-4 text-emerald-500" />
+                  <span>123 Innovation St, Tech Valley, CA 94000</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Company Links */}
+            <div>
+              <h3 className="text-white font-semibold mb-4 text-sm">COMPANY</h3>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">About Us</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">How It Works</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Our Team</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Careers</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Press</a></li>
+              </ul>
+            </div>
+
+            {/* Support Links */}
+            <div>
+              <h3 className="text-white font-semibold mb-4 text-sm">SUPPORT</h3>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Help Center</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Safety & Trust</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Contact Us</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">FAQs</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Blog</a></li>
+              </ul>
+            </div>
+
+            {/* Resources Links */}
+            <div>
+              <h3 className="text-white font-semibold mb-4 text-sm">RESOURCES</h3>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Start a Campaign</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Success Stories</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Campaign Tips</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">API Documentation</a></li>
+                <li><a href="#" className="text-sm hover:text-emerald-500 transition">Developer Tools</a></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Newsletter Section */}
+          <div className="border-t border-gray-800 pt-8 mb-8">
+            <div className="max-w-2xl">
+              <h3 className="text-white font-semibold mb-3 text-sm">STAY UPDATED</h3>
+              <p className="text-sm text-gray-400 mb-4">Subscribe to our newsletter for the latest tech innovations and funding success stories.</p>
+              <div className="flex gap-3">
+                <input 
+                  type="email" 
+                  placeholder="Enter your email"
+                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-emerald-500"
+                />
+                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 text-sm font-semibold rounded-lg">
+                  Subscribe
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-wrap gap-6 text-xs text-gray-400">
+              <a href="#" className="hover:text-emerald-500 transition">Privacy Policy</a>
+              <a href="#" className="hover:text-emerald-500 transition">Terms of Service</a>
+              <a href="#" className="hover:text-emerald-500 transition">Cookie Policy</a>
+              <a href="#" className="hover:text-emerald-500 transition">Accessibility</a>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <a href="#" className="w-9 h-9 bg-gray-800 hover:bg-emerald-500 rounded-full flex items-center justify-center transition">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 bg-gray-800 hover:bg-emerald-500 rounded-full flex items-center justify-center transition">
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 bg-gray-800 hover:bg-emerald-500 rounded-full flex items-center justify-center transition">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 bg-gray-800 hover:bg-emerald-500 rounded-full flex items-center justify-center transition">
+                <Linkedin className="w-4 h-4" />
+              </a>
+              <a href="#" className="w-9 h-9 bg-gray-800 hover:bg-emerald-500 rounded-full flex items-center justify-center transition">
+                <Youtube className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="text-center mt-8 pt-8 border-t border-gray-800">
+            <p className="text-xs text-gray-500">
+              © 2026 Hope Rise. All rights reserved. Made with ❤️ for innovators worldwide.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
