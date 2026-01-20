@@ -1,8 +1,9 @@
 import React from 'react'
+import LandingPage from '@/components/LandingPage'
 
 function page() {
   return (
-    <div>page</div>
+    <LandingPage />
   )
 }
 
