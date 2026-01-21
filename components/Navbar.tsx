@@ -1,37 +1,51 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button"
-import { Phone } from "lucide-react"
+import { motion } from 'framer-motion'
+import { Phone } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function Navbar() {
-  return (
-    <nav className="bg-white border-b border-gray-200">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">HR</span>
-            </div>
-            <span className="font-semibold text-gray-900 text-sm">HOPE RISE</span>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-gray-700">
-            <a href="#who-we-are" className="hover:text-emerald-500 transition">WHO WE ARE</a>
-            <a href="#what-we-do" className="hover:text-emerald-500 transition">WHAT WE DO</a>
-            <a href="#news-events" className="hover:text-emerald-500 transition">NEWS & EVENTS</a>
-            <a href="#get-involved" className="hover:text-emerald-500 transition">GET INVOLVED</a>
-          </div>
+    return (
+        <motion.header
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border"
+        >
+            <div className="max-w-8xl mx-auto px-6 py-6 flex items-center justify-between">
+                {/* Logo */}
+                <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center gap-2 cursor-pointer"
+                >
+                    <span className="font-bold text-xl tracking-wider">HOPE RISE</span>
+                </motion.div>
 
-          <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <Phone className="w-4 h-4 text-gray-700" />
-            </button>
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 text-xs font-semibold rounded-lg">
-              DONATE
-            </Button>
-          </div>
-        </div>
-      </div>
-    </nav>
-  )
+                {/* Navigation */}
+                <nav className="hidden md:flex items-center gap-8 ">
+                    {['Explore', 'Create campaign'].map(
+                        (item) => (
+                            <motion.a
+                                key={item}
+                                href="#"
+                                whileHover={{ color: '#5bbb7d' }}
+                                className="text-md font-semibold text-foreground/70 hover:text-accent transition-colors"
+                            >
+                                {item}
+                            </motion.a>
+                        )
+                    )}
+                </nav>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-4">
+                    <Button
+                        className="bg-green-400 hover:bg-accent/90 text-black  font-semibold text-sm px-6 rounded-full"
+                    >
+                        Wallet Connect
+                    </Button>
+                </div>
+            </div>
+        </motion.header>
+    )
 }
