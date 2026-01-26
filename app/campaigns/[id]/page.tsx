@@ -23,15 +23,15 @@ import { useParams } from 'next/navigation'
 import Navbar from '@/components/landing-page/Navbar'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { useHopeRise, type Campaign, type Milestone } from '@/lib/hooks/useHopeRise'
-import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { useHopeRise, usdcToDisplay, type Campaign, type Milestone } from '@/lib/hooks/useHopeRise'
+import { PublicKey } from '@solana/web3.js'
 import { ipfsToHttp } from '@/lib/ipfs'
 
 const fundingTiers = [
-  { amount: 0.1, label: 'Supporter', description: 'Show your support for this cause' },
-  { amount: 0.5, label: 'Backer', description: 'Get exclusive project updates' },
-  { amount: 1, label: 'Champion', description: 'Your name on the donor wall' },
-  { amount: 5, label: 'Hero', description: 'VIP access + all previous rewards' },
+  { amount: 10, label: 'Supporter', description: 'Show your support for this cause' },
+  { amount: 50, label: 'Backer', description: 'Get exclusive project updates' },
+  { amount: 100, label: 'Champion', description: 'Your name on the donor wall' },
+  { amount: 500, label: 'Hero', description: 'VIP access + all previous rewards' },
 ]
 
 interface DisplayCampaign {
@@ -86,9 +86,9 @@ export default function CampaignDetailPage() {
             id: blockchainCampaign.publicKey.toString(),
             title: blockchainCampaign.title,
             description: blockchainCampaign.shortDescription,
-            longDescription: `Campaign created on Hope Rise blockchain platform.\n\nFunding Goal: ${(blockchainCampaign.fundingGoal / LAMPORTS_PER_SOL).toFixed(2)} SOL\nAmount Raised: ${(blockchainCampaign.amountRaised / LAMPORTS_PER_SOL).toFixed(2)} SOL\n\nThis campaign is stored on the Solana blockchain and all contributions are transparent and verifiable.`,
-            raised: blockchainCampaign.amountRaised / LAMPORTS_PER_SOL,
-            goal: blockchainCampaign.fundingGoal / LAMPORTS_PER_SOL,
+            longDescription: `Campaign created on Hope Rise blockchain platform.\n\nFunding Goal: ${usdcToDisplay(blockchainCampaign.fundingGoal).toFixed(2)} USDC\nAmount Raised: ${usdcToDisplay(blockchainCampaign.amountRaised).toFixed(2)} USDC\n\nThis campaign is stored on the Solana blockchain and all contributions are transparent and verifiable.`,
+            raised: usdcToDisplay(blockchainCampaign.amountRaised),
+            goal: usdcToDisplay(blockchainCampaign.fundingGoal),
             backers: blockchainCampaign.backerCount,
             daysLeft: Math.max(0, Math.floor((blockchainCampaign.deadline - now) / 86400)),
             category: blockchainCampaign.category,
@@ -97,7 +97,7 @@ export default function CampaignDetailPage() {
             updates: [],
             milestones: milestones.map(m => ({
               title: m.title,
-              amount: m.targetAmount / LAMPORTS_PER_SOL,
+              amount: usdcToDisplay(m.targetAmount),
               completed: m.isCompleted,
             })),
             faqs: [],
@@ -142,7 +142,7 @@ export default function CampaignDetailPage() {
       if (updatedCampaign) {
         setCampaign(prev => prev ? {
           ...prev,
-          raised: updatedCampaign.amountRaised / LAMPORTS_PER_SOL,
+          raised: usdcToDisplay(updatedCampaign.amountRaised),
           backers: updatedCampaign.backerCount,
         } : null)
       }
@@ -343,10 +343,10 @@ export default function CampaignDetailPage() {
                 <div className="mb-6">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="font-display text-3xl font-bold text-hope">
-                      {campaign.raised.toFixed(2)} SOL
+                      {campaign.raised.toFixed(2)} USDC
                     </span>
                     <span className="text-muted-foreground">
-                      of {campaign.goal.toFixed(2)} SOL
+                      of {campaign.goal.toFixed(2)} USDC
                     </span>
                   </div>
                   <div className="h-3 bg-secondary rounded-full overflow-hidden mb-4">
@@ -396,7 +396,7 @@ export default function CampaignDetailPage() {
                 {/* Funding tiers */}
                 <div className="space-y-3 mb-6">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Select amount (SOL)
+                    Select amount (USDC)
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {fundingTiers.map((tier) => (
@@ -409,7 +409,7 @@ export default function CampaignDetailPage() {
                             : 'border-border hover:border-hope/50'
                         }`}
                       >
-                        <p className="font-semibold">{tier.amount} SOL</p>
+                        <p className="font-semibold">{tier.amount} USDC</p>
                         <p className="text-xs text-muted-foreground">{tier.label}</p>
                       </button>
                     ))}
@@ -417,15 +417,15 @@ export default function CampaignDetailPage() {
 
                   {/* Custom amount */}
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      SOL
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      USDC
                     </span>
                     <input
                       type="number"
                       placeholder="Custom amount"
                       value={customAmount}
                       onChange={(e) => { setCustomAmount(e.target.value); setSelectedTier(null); }}
-                      className="w-full pl-12 pr-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50"
+                      className="w-full pl-14 pr-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50"
                     />
                   </div>
                 </div>
@@ -494,7 +494,7 @@ export default function CampaignDetailPage() {
                             </p>
                           </div>
                           <span className={`text-sm ${milestone.completed ? 'text-hope' : 'text-muted-foreground'}`}>
-                            {milestone.amount.toFixed(2)} SOL
+                            {milestone.amount.toFixed(2)} USDC
                           </span>
                         </div>
                       ))}

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/hope_rise.json`.
  */
 export type HopeRise = {
-  "address": "8zeHBfNfVkHQcWpJH9HRnR8NoEfrW6zSGqmZvBMWeCkd",
+  "address": "BAaDjLVffrtNzgKLoUjmM9t1tWBHxMF6UFdnL1NYmQ3J",
   "metadata": {
     "name": "hopeRise",
     "version": "0.1.0",
@@ -91,7 +91,7 @@ export type HopeRise = {
     {
       "name": "claimRefund",
       "docs": [
-        "Claim refund if campaign failed (goal not met)"
+        "Claim USDC refund if campaign failed (goal not met)"
       ],
       "discriminator": [
         15,
@@ -136,6 +136,40 @@ export type HopeRise = {
           }
         },
         {
+          "name": "campaignVault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "contribution",
           "writable": true,
           "pda": {
@@ -172,6 +206,113 @@ export type HopeRise = {
           "name": "contributor",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contributorTokenAccount",
+          "docs": [
+            "Contributor's USDC token account (ATA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "contributor"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdcMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "usdcMint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -421,7 +562,7 @@ export type HopeRise = {
     {
       "name": "fundCampaign",
       "docs": [
-        "Contribute SOL to a campaign"
+        "Contribute USDC to a campaign"
       ],
       "discriminator": [
         109,
@@ -466,6 +607,40 @@ export type HopeRise = {
           }
         },
         {
+          "name": "campaignVault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "contribution",
           "writable": true,
           "pda": {
@@ -502,6 +677,23 @@ export type HopeRise = {
           "name": "contributor",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contributorTokenAccount",
+          "docs": [
+            "Contributor's USDC token account (ATA)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "usdcMint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "systemProgram",
@@ -575,7 +767,7 @@ export type HopeRise = {
     {
       "name": "withdrawFunds",
       "docs": [
-        "Withdraw funds (creator only, after goal met)"
+        "Withdraw USDC funds (creator only, after goal met)"
       ],
       "discriminator": [
         241,
@@ -620,12 +812,153 @@ export type HopeRise = {
           }
         },
         {
+          "name": "campaignVault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "creator",
           "writable": true,
           "signer": true,
           "relations": [
             "campaign"
           ]
+        },
+        {
+          "name": "creatorTokenAccount",
+          "docs": [
+            "Creator's USDC token account (ATA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdcMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "usdcMint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -799,6 +1132,16 @@ export type HopeRise = {
       "code": 6021,
       "name": "insufficientFunds",
       "msg": "Insufficient funds in campaign account"
+    },
+    {
+      "code": 6022,
+      "name": "invalidMint",
+      "msg": "Invalid token mint address"
+    },
+    {
+      "code": 6023,
+      "name": "invalidTokenAccount",
+      "msg": "Invalid token account"
     }
   ],
   "types": [

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/landing-page/Navbar'
-import { useHopeRise, type Campaign } from '@/lib/hooks/useHopeRise'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { useHopeRise, usdcToDisplay, type Campaign } from '@/lib/hooks/useHopeRise'
 import { ipfsToHttp } from '@/lib/ipfs'
 
 const categories = ['All', 'Environment', 'Education', 'Healthcare', 'Technology', 'Community', 'Arts']
@@ -93,7 +92,7 @@ function CampaignCard({ campaign }: { campaign: DisplayCampaign }) {
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-semibold text-hope">
-                  ${campaign.raised.toLocaleString()}
+                  {campaign.raised.toLocaleString()} USDC
                 </span>
                 <span className="text-muted-foreground">
                   {Math.round(progress)}%
@@ -143,8 +142,8 @@ export default function ExplorePage() {
           id: c.publicKey.toString(),
           title: c.title,
           description: c.shortDescription,
-          raised: Math.round(c.amountRaised / LAMPORTS_PER_SOL * 100), // Convert to USD (approx)
-          goal: Math.round(c.fundingGoal / LAMPORTS_PER_SOL * 100),
+          raised: usdcToDisplay(c.amountRaised), // Convert from USDC base units to display
+          goal: usdcToDisplay(c.fundingGoal),
           backers: c.backerCount,
           daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
           category: c.category,

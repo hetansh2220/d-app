@@ -1,9 +1,15 @@
 import { Program, AnchorProvider, Idl, BN } from '@coral-xyz/anchor';
-import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import idl from '@/lib/idl/hope_rise.json';
 
 // Program ID from the deployed contract
-export const PROGRAM_ID = new PublicKey('8zeHBfNfVkHQcWpJH9HRnR8NoEfrW6zSGqmZvBMWeCkd');
+export const PROGRAM_ID = new PublicKey('BAaDjLVffrtNzgKLoUjmM9t1tWBHxMF6UFdnL1NYmQ3J');
+
+// Circle's official USDC Mint on Solana devnet (faucet: https://faucet.circle.com/)
+export const USDC_MINT = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');
+
+// USDC has 6 decimals
+export const USDC_DECIMALS = 6;
 
 // Connection to Solana devnet
 export const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
@@ -13,6 +19,7 @@ export const CAMPAIGN_COUNTER_SEED = 'campaign_counter';
 export const CAMPAIGN_SEED = 'campaign';
 export const MILESTONE_SEED = 'milestone';
 export const CONTRIBUTION_SEED = 'contribution';
+export const CAMPAIGN_VAULT_SEED = 'campaign_vault';
 
 // Category enum mapping
 export const CategoryEnum = {
@@ -80,16 +87,31 @@ export function getContributionPDA(campaignPubkey: PublicKey, contributor: Publi
   );
 }
 
-// Helper to convert lamports to SOL
-export function lamportsToSol(lamports: number | BN): number {
-  const value = typeof lamports === 'number' ? lamports : lamports.toNumber();
-  return value / LAMPORTS_PER_SOL;
+// Get campaign vault PDA (token account that holds USDC)
+export function getCampaignVaultPDA(campaignPubkey: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from(CAMPAIGN_VAULT_SEED),
+      campaignPubkey.toBuffer(),
+    ],
+    PROGRAM_ID
+  );
 }
 
-// Helper to convert SOL to lamports
-export function solToLamports(sol: number): BN {
-  return new BN(Math.floor(sol * LAMPORTS_PER_SOL));
+// Helper to convert USDC base units to display value (6 decimals)
+export function usdcToDisplay(baseUnits: number | BN): number {
+  const value = typeof baseUnits === 'number' ? baseUnits : baseUnits.toNumber();
+  return value / Math.pow(10, USDC_DECIMALS);
 }
+
+// Helper to convert display value to USDC base units
+export function displayToUsdc(displayValue: number): BN {
+  return new BN(Math.floor(displayValue * Math.pow(10, USDC_DECIMALS)));
+}
+
+// Legacy aliases for backwards compatibility
+export const lamportsToSol = usdcToDisplay;
+export const solToLamports = displayToUsdc;
 
 // Campaign type for frontend
 export interface Campaign {
@@ -101,9 +123,9 @@ export interface Campaign {
   category: string;
   coverImageUrl: string;
   storyUrl: string;
-  fundingGoal: number; // in lamports
+  fundingGoal: number; // in USDC base units (6 decimals)
   deadline: number; // unix timestamp
-  amountRaised: number; // in lamports
+  amountRaised: number; // in USDC base units (6 decimals)
   backerCount: number;
   isActive: boolean;
   createdAt: number; // unix timestamp
@@ -117,7 +139,7 @@ export interface Milestone {
   campaign: PublicKey;
   milestoneIndex: number;
   title: string;
-  targetAmount: number; // in lamports
+  targetAmount: number; // in USDC base units (6 decimals)
   isCompleted: boolean;
   bump: number;
 }
@@ -127,7 +149,7 @@ export interface Contribution {
   publicKey: PublicKey;
   campaign: PublicKey;
   contributor: PublicKey;
-  amount: number; // in lamports
+  amount: number; // in USDC base units (6 decimals)
   contributedAt: number; // unix timestamp
   refundClaimed: boolean;
   bump: number;

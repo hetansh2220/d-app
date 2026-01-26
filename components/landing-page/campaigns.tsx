@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useHopeRise, type Campaign } from '@/lib/hooks/useHopeRise'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { usdcToDisplay } from '@/lib/solana/program'
 import { ipfsToHttp } from '@/lib/ipfs'
 
 interface DisplayCampaign {
@@ -59,8 +59,8 @@ export default function Campaigns() {
             id: c.publicKey.toString(),
             title: c.title,
             description: c.shortDescription,
-            raised: c.amountRaised / LAMPORTS_PER_SOL,
-            goal: c.fundingGoal / LAMPORTS_PER_SOL,
+            raised: usdcToDisplay(c.amountRaised),
+            goal: usdcToDisplay(c.fundingGoal),
             backers: c.backerCount,
             daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
             category: c.category,
@@ -190,10 +190,10 @@ export default function Campaigns() {
                       <div className="mb-4">
                         <div className="flex justify-between text-sm mb-2">
                           <span className="font-semibold text-hope">
-                            {campaign.raised.toFixed(2)} SOL
+                            ${campaign.raised.toFixed(2)} USDC
                           </span>
                           <span className="text-muted-foreground">
-                            of {campaign.goal.toFixed(2)} SOL
+                            of ${campaign.goal.toFixed(2)} USDC
                           </span>
                         </div>
                         <div className="h-2 bg-secondary rounded-full overflow-hidden">

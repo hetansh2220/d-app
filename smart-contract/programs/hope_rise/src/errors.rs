@@ -67,4 +67,10 @@ pub enum HopeRiseError {
 
     #[msg("Insufficient funds in campaign account")]
     InsufficientFunds,
+
+    #[msg("Invalid token mint address")]
+    InvalidMint,
+
+    #[msg("Invalid token account")]
+    InvalidTokenAccount,
 }

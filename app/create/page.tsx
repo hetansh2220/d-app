@@ -155,7 +155,7 @@ export default function CreateCampaignPage() {
         category: formData.category,
         coverImageUrl,
         storyUrl: `ipfs://${Buffer.from(formData.story).toString('base64').slice(0, 50)}`,
-        fundingGoalSol: Number(formData.fundingGoal) / 100, // Convert USD to approximate SOL (simplified)
+        fundingGoalUsdc: Number(formData.fundingGoal), // Funding goal in USDC
         durationDays: Number(formData.duration),
       })
 
@@ -167,7 +167,7 @@ export default function CreateCampaignPage() {
           result.campaignPda,
           i,
           milestone.title,
-          Number(milestone.amount) / 100 // Convert USD to approximate SOL
+          Number(milestone.amount) // Milestone amount in USDC
         )
       }
 
@@ -416,18 +416,18 @@ export default function CreateCampaignPage() {
               <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Funding Goal (USD) *</label>
+                    <label className="block text-sm font-medium mb-2">Funding Goal (USDC) *</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">USDC</span>
                       <input
                         type="number"
                         value={formData.fundingGoal}
                         onChange={(e) => updateFormData('fundingGoal', e.target.value)}
                         placeholder="10,000"
-                        className="w-full pl-8 pr-4 py-4 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50 focus:ring-1 focus:ring-hope/20"
+                        className="w-full pl-14 pr-4 py-4 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50 focus:ring-1 focus:ring-hope/20"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">Funds will be received in SOL equivalent</p>
+                    <p className="text-xs text-muted-foreground mt-2">Funds will be received in USDC</p>
                   </div>
 
                   <div>
@@ -471,14 +471,14 @@ export default function CreateCampaignPage() {
                           placeholder="Milestone title"
                           className="flex-1 px-4 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50"
                         />
-                        <div className="relative w-32">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                        <div className="relative w-36">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">USDC</span>
                           <input
                             type="number"
                             value={milestone.amount}
                             onChange={(e) => updateMilestone(index, 'amount', e.target.value)}
                             placeholder="Amount"
-                            className="w-full pl-7 pr-3 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50"
+                            className="w-full pl-12 pr-3 py-3 bg-secondary border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-hope/50"
                           />
                         </div>
                         {formData.milestones.length > 1 && (
@@ -541,7 +541,7 @@ export default function CreateCampaignPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-secondary rounded-xl">
                       <p className="text-sm text-muted-foreground mb-1">Funding Goal</p>
-                      <p className="font-semibold">${formData.fundingGoal ? Number(formData.fundingGoal).toLocaleString() : '0'}</p>
+                      <p className="font-semibold">{formData.fundingGoal ? Number(formData.fundingGoal).toLocaleString() : '0'} USDC</p>
                     </div>
 
                     <div className="p-4 bg-secondary rounded-xl">

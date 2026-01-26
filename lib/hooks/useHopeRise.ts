@@ -4,17 +4,26 @@ import { useState, useCallback } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import type { HopeRise } from '@/lib/idl/hope_rise';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import {
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  createAssociatedTokenAccountInstruction
+} from '@solana/spl-token';
 import {
   idl,
   getCampaignCounterPDA,
   getCampaignPDA,
   getMilestonePDA,
   getContributionPDA,
+  getCampaignVaultPDA,
   getCategoryEnum,
   getCategoryString,
-  solToLamports,
-  lamportsToSol,
+  displayToUsdc,
+  usdcToDisplay,
+  USDC_MINT,
   type Campaign,
   type Milestone,
   type Contribution,
@@ -97,7 +106,7 @@ export function useHopeRise() {
     category: string;
     coverImageUrl: string;
     storyUrl: string;
-    fundingGoalSol: number;
+    fundingGoalUsdc: number;
     durationDays: number;
   }) => {
     if (!publicKey) throw new Error('Wallet not connected');
@@ -136,7 +145,7 @@ export function useHopeRise() {
           getCategoryEnum(params.category),
           params.coverImageUrl,
           params.storyUrl,
-          solToLamports(params.fundingGoalSol),
+          displayToUsdc(params.fundingGoalUsdc),
           new BN(params.durationDays)
         )
         .accountsPartial({
@@ -146,9 +155,9 @@ export function useHopeRise() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      
+
       return { tx, campaignPda };
-      
+
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create campaign';
       setError(message);
@@ -158,25 +167,62 @@ export function useHopeRise() {
     }
   }, [publicKey, getProgram]);
   
-  // Fund a campaign
+  // Fund a campaign with USDC
   const fundCampaign = useCallback(async (
     campaignPubkey: PublicKey,
-    amountSol: number
+    amountUsdc: number
   ) => {
-    if (!publicKey) throw new Error('Wallet not connected');
+    if (!publicKey || !signTransaction) throw new Error('Wallet not connected');
     setLoading(true);
     setError(null);
 
     try {
       const program = await getProgram();
       const [contributionPda] = getContributionPDA(campaignPubkey, publicKey);
+      const [campaignVaultPda] = getCampaignVaultPDA(campaignPubkey);
+
+      // Get contributor's USDC ATA
+      const contributorTokenAccount = await getAssociatedTokenAddress(
+        USDC_MINT,
+        publicKey
+      );
+
+      // Check if contributor's USDC token account exists, create if not
+      try {
+        await getAccount(connection, contributorTokenAccount);
+      } catch {
+        // Account doesn't exist, create it first
+        const createAtaIx = createAssociatedTokenAccountInstruction(
+          publicKey, // payer
+          contributorTokenAccount, // ata address
+          publicKey, // owner
+          USDC_MINT // mint
+        );
+
+        const createAtaTx = new Transaction().add(createAtaIx);
+        createAtaTx.feePayer = publicKey;
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        createAtaTx.recentBlockhash = blockhash;
+
+        const signedTx = await signTransaction(createAtaTx);
+        const sig = await connection.sendRawTransaction(signedTx.serialize());
+        await connection.confirmTransaction({
+          signature: sig,
+          blockhash,
+          lastValidBlockHeight
+        });
+      }
 
       const tx = await program.methods
-        .fundCampaign(solToLamports(amountSol))
+        .fundCampaign(displayToUsdc(amountUsdc))
         .accountsPartial({
           campaign: campaignPubkey,
+          campaignVault: campaignVaultPda,
           contribution: contributionPda,
           contributor: publicKey,
+          contributorTokenAccount: contributorTokenAccount,
+          usdcMint: USDC_MINT,
+          tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
@@ -189,9 +235,9 @@ export function useHopeRise() {
     } finally {
       setLoading(false);
     }
-  }, [publicKey, getProgram]);
+  }, [publicKey, signTransaction, connection, getProgram]);
 
-  // Withdraw funds (creator only)
+  // Withdraw USDC funds (creator only)
   const withdrawFunds = useCallback(async (campaignPubkey: PublicKey) => {
     if (!publicKey) throw new Error('Wallet not connected');
     setLoading(true);
@@ -199,12 +245,24 @@ export function useHopeRise() {
 
     try {
       const program = await getProgram();
+      const [campaignVaultPda] = getCampaignVaultPDA(campaignPubkey);
+
+      // Get creator's USDC ATA
+      const creatorTokenAccount = await getAssociatedTokenAddress(
+        USDC_MINT,
+        publicKey
+      );
 
       const tx = await program.methods
         .withdrawFunds()
         .accountsPartial({
           campaign: campaignPubkey,
+          campaignVault: campaignVaultPda,
           creator: publicKey,
+          creatorTokenAccount: creatorTokenAccount,
+          usdcMint: USDC_MINT,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
@@ -224,7 +282,7 @@ export function useHopeRise() {
     campaignPubkey: PublicKey,
     milestoneIndex: number,
     title: string,
-    targetAmountSol: number
+    targetAmountUsdc: number
   ) => {
     if (!publicKey) throw new Error('Wallet not connected');
     setLoading(true);
@@ -235,7 +293,7 @@ export function useHopeRise() {
       const [milestonePda] = getMilestonePDA(campaignPubkey, milestoneIndex);
 
       const tx = await program.methods
-        .addMilestone(title, solToLamports(targetAmountSol))
+        .addMilestone(title, displayToUsdc(targetAmountUsdc))
         .accountsPartial({
           campaign: campaignPubkey,
           milestone: milestonePda,
@@ -312,7 +370,7 @@ export function useHopeRise() {
     }
   }, [publicKey, getProgram]);
 
-  // Claim refund
+  // Claim USDC refund
   const claimRefund = useCallback(async (campaignPubkey: PublicKey) => {
     if (!publicKey) throw new Error('Wallet not connected');
     setLoading(true);
@@ -321,13 +379,25 @@ export function useHopeRise() {
     try {
       const program = await getProgram();
       const [contributionPda] = getContributionPDA(campaignPubkey, publicKey);
+      const [campaignVaultPda] = getCampaignVaultPDA(campaignPubkey);
+
+      // Get contributor's USDC ATA
+      const contributorTokenAccount = await getAssociatedTokenAddress(
+        USDC_MINT,
+        publicKey
+      );
 
       const tx = await program.methods
         .claimRefund()
         .accountsPartial({
           campaign: campaignPubkey,
+          campaignVault: campaignVaultPda,
           contribution: contributionPda,
           contributor: publicKey,
+          contributorTokenAccount: contributorTokenAccount,
+          usdcMint: USDC_MINT,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
@@ -491,10 +561,11 @@ export function useHopeRise() {
     fetchContribution,
     isInitialized,
 
-    // Helpers
-    lamportsToSol,
-    solToLamports,
+    // Helpers (USDC conversion)
+    usdcToDisplay,
+    displayToUsdc,
   };
 }
 
+export { usdcToDisplay, displayToUsdc };
 export type { Campaign, Milestone, Contribution };

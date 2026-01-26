@@ -33,3 +33,13 @@ pub const MILESTONE_SEED: &[u8] = b"milestone";
 
 /// PDA seed for contribution accounts
 pub const CONTRIBUTION_SEED: &[u8] = b"contribution";
+
+/// PDA seed for campaign vault (token account)
+pub const CAMPAIGN_VAULT_SEED: &[u8] = b"campaign_vault";
+
+/// Circle's official USDC mint address on Solana devnet
+/// Faucet: https://faucet.circle.com/
+pub const USDC_MINT: &str = "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr";
+
+/// USDC decimals (6 instead of SOL's 9)
+pub const USDC_DECIMALS: u8 = 6;

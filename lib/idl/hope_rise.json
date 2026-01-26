@@ -1,5 +1,5 @@
 {
-  "address": "8zeHBfNfVkHQcWpJH9HRnR8NoEfrW6zSGqmZvBMWeCkd",
+  "address": "BAaDjLVffrtNzgKLoUjmM9t1tWBHxMF6UFdnL1NYmQ3J",
   "metadata": {
     "name": "hope_rise",
     "version": "0.1.0",
@@ -85,7 +85,7 @@
     {
       "name": "claim_refund",
       "docs": [
-        "Claim refund if campaign failed (goal not met)"
+        "Claim USDC refund if campaign failed (goal not met)"
       ],
       "discriminator": [
         15,
@@ -130,6 +130,40 @@
           }
         },
         {
+          "name": "campaign_vault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "contribution",
           "writable": true,
           "pda": {
@@ -166,6 +200,113 @@
           "name": "contributor",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contributor_token_account",
+          "docs": [
+            "Contributor's USDC token account (ATA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "contributor"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "system_program",
@@ -415,7 +556,7 @@
     {
       "name": "fund_campaign",
       "docs": [
-        "Contribute SOL to a campaign"
+        "Contribute USDC to a campaign"
       ],
       "discriminator": [
         109,
@@ -460,6 +601,40 @@
           }
         },
         {
+          "name": "campaign_vault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "contribution",
           "writable": true,
           "pda": {
@@ -496,6 +671,23 @@
           "name": "contributor",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "contributor_token_account",
+          "docs": [
+            "Contributor's USDC token account (ATA)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
           "name": "system_program",
@@ -569,7 +761,7 @@
     {
       "name": "withdraw_funds",
       "docs": [
-        "Withdraw funds (creator only, after goal met)"
+        "Withdraw USDC funds (creator only, after goal met)"
       ],
       "discriminator": [
         241,
@@ -614,12 +806,153 @@
           }
         },
         {
+          "name": "campaign_vault",
+          "docs": [
+            "Campaign's USDC vault (PDA token account)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
           "name": "creator",
           "writable": true,
           "signer": true,
           "relations": [
             "campaign"
           ]
+        },
+        {
+          "name": "creator_token_account",
+          "docs": [
+            "Creator's USDC token account (ATA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "system_program",
@@ -793,6 +1126,16 @@
       "code": 6021,
       "name": "InsufficientFunds",
       "msg": "Insufficient funds in campaign account"
+    },
+    {
+      "code": 6022,
+      "name": "InvalidMint",
+      "msg": "Invalid token mint address"
+    },
+    {
+      "code": 6023,
+      "name": "InvalidTokenAccount",
+      "msg": "Invalid token account"
     }
   ],
   "types": [

@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-hope_rise = "8zeHBfNfVkHQcWpJH9HRnR8NoEfrW6zSGqmZvBMWeCkd"
+hope_rise = "BAaDjLVffrtNzgKLoUjmM9t1tWBHxMF6UFdnL1NYmQ3J"
 
 [registry]
 url = "https://api.apr.dev"
