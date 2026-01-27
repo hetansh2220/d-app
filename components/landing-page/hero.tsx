@@ -2,9 +2,17 @@
 
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Play, Sparkles, TrendingUp, Users, Zap } from 'lucide-react'
-import { useEffect } from 'react'
+import { ArrowRight, Sparkles, TrendingUp, Users, Zap, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useHopeRise, usdcToDisplay, type Campaign } from '@/lib/hooks/useHopeRise'
+import { ipfsToHttp } from '@/lib/ipfs'
+
+interface PlatformStats {
+  totalRaised: number
+  totalContributors: number
+  totalCampaigns: number
+}
 
 function FloatingOrb({ delay = 0, size = 400, color = 'hope' }: { delay?: number; size?: number; color?: string }) {
   return (
@@ -35,7 +43,7 @@ function FloatingOrb({ delay = 0, size = 400, color = 'hope' }: { delay?: number
   )
 }
 
-function StatBadge({ icon: Icon, value, label }: { icon: React.ElementType; value: string; label: string }) {
+function StatBadge({ icon: Icon, value, label, isLoading }: { icon: React.ElementType; value: string; label: string; isLoading?: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,14 +55,74 @@ function StatBadge({ icon: Icon, value, label }: { icon: React.ElementType; valu
         <Icon className="w-5 h-5 text-hope" />
       </div>
       <div>
-        <p className="font-display font-bold text-lg">{value}</p>
+        {isLoading ? (
+          <div className="w-16 h-5 bg-secondary rounded animate-pulse" />
+        ) : (
+          <p className="font-display font-bold text-lg">{value}</p>
+        )}
         <p className="text-xs text-muted-foreground">{label}</p>
       </div>
     </motion.div>
   )
 }
 
-function CampaignCard({ className = '' }: { className?: string }) {
+interface CampaignCardProps {
+  campaign: Campaign | null
+  isLoading: boolean
+  className?: string
+}
+
+function CampaignCard({ campaign, isLoading, className = '' }: CampaignCardProps) {
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.8 }}
+        className={`relative bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 w-72 shadow-lg dark:shadow-none ${className}`}
+      >
+        <div className="h-32 bg-secondary rounded-xl mb-4 animate-pulse" />
+        <div className="w-3/4 h-5 bg-secondary rounded mb-2 animate-pulse" />
+        <div className="w-1/2 h-4 bg-secondary rounded mb-4 animate-pulse" />
+        <div className="space-y-2">
+          <div className="w-full h-4 bg-secondary rounded animate-pulse" />
+          <div className="h-2 bg-secondary rounded-full animate-pulse" />
+        </div>
+      </motion.div>
+    )
+  }
+
+  if (!campaign) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.8 }}
+        className={`relative bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 w-72 shadow-lg dark:shadow-none ${className}`}
+      >
+        <div className="h-32 bg-gradient-to-br from-hope/20 to-emerald-500/10 rounded-xl mb-4 flex items-center justify-center">
+          <div className="w-16 h-16 bg-hope/20 rounded-full flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-hope" />
+          </div>
+        </div>
+        <h4 className="font-display font-semibold mb-1">No campaigns yet</h4>
+        <p className="text-xs text-muted-foreground mb-4">Be the first to create a campaign!</p>
+        <Link href="/create">
+          <Button size="sm" className="w-full bg-hope text-black hover:bg-hope/90">
+            Create Campaign
+          </Button>
+        </Link>
+      </motion.div>
+    )
+  }
+
+  const raised = usdcToDisplay(campaign.amountRaised)
+  const goal = usdcToDisplay(campaign.fundingGoal)
+  const progress = goal > 0 ? (raised / goal) * 100 : 0
+  const now = Math.floor(Date.now() / 1000)
+  const daysLeft = Math.max(0, Math.floor((campaign.deadline - now) / 86400))
+  const imageUrl = campaign.coverImageUrl ? ipfsToHttp(campaign.coverImageUrl) : ''
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -62,41 +130,62 @@ function CampaignCard({ className = '' }: { className?: string }) {
       transition={{ delay: 0.6, duration: 0.8 }}
       className={`relative bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 w-72 shadow-lg dark:shadow-none ${className}`}
     >
-      <div className="absolute -top-2 -right-2 px-3 py-1 bg-hope text-white text-xs font-bold rounded-full">
-        LIVE
-      </div>
-      <div className="h-32 bg-gradient-to-br from-hope/20 to-emerald-500/10 rounded-xl mb-4 flex items-center justify-center">
-        <div className="w-16 h-16 bg-hope/20 rounded-full flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-hope" />
+      <Link href={`/campaigns/${campaign.publicKey.toString()}`}>
+        <div className="absolute -top-2 -right-2 px-3 py-1 bg-hope text-white text-xs font-bold rounded-full">
+          LIVE
         </div>
-      </div>
-      <h4 className="font-display font-semibold mb-1">Solar Water Project</h4>
-      <p className="text-xs text-muted-foreground mb-4">Clean water for 10,000 families</p>
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-hope font-semibold">$45,200</span>
-          <span className="text-muted-foreground">of $60,000</span>
+        <div className="h-32 bg-gradient-to-br from-hope/20 to-emerald-500/10 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+          {imageUrl ? (
+            <img src={imageUrl} alt={campaign.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-16 h-16 bg-hope/20 rounded-full flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-hope" />
+            </div>
+          )}
         </div>
-        <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: '75%' }}
-            transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-hope to-emerald-400 rounded-full"
-          />
+        <h4 className="font-display font-semibold mb-1 line-clamp-1">{campaign.title}</h4>
+        <p className="text-xs text-muted-foreground mb-4 line-clamp-1">{campaign.shortDescription}</p>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-hope font-semibold">{raised.toFixed(2)} USDC</span>
+            <span className="text-muted-foreground">of {goal.toFixed(2)}</span>
+          </div>
+          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(progress, 100)}%` }}
+              transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
+              className="h-full bg-gradient-to-r from-hope to-emerald-400 rounded-full"
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+            <span className="flex items-center gap-1">
+              <Users className="w-3 h-3" /> {campaign.backerCount} backers
+            </span>
+            <span>{daysLeft} days left</span>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-          <span className="flex items-center gap-1">
-            <Users className="w-3 h-3" /> 892 backers
-          </span>
-          <span>12 days left</span>
-        </div>
-      </div>
+      </Link>
     </motion.div>
   )
 }
 
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`
+  }
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`
+  }
+  return num.toString()
+}
+
 export default function Hero() {
+  const { fetchAllCampaigns } = useHopeRise()
+  const [stats, setStats] = useState<PlatformStats>({ totalRaised: 0, totalContributors: 0, totalCampaigns: 0 })
+  const [latestCampaign, setLatestCampaign] = useState<Campaign | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
 
@@ -116,6 +205,42 @@ export default function Hero() {
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [mouseX, mouseY])
+
+  // Fetch real stats from blockchain
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const campaigns = await fetchAllCampaigns()
+
+        // Calculate totals
+        let totalRaised = 0
+        let totalContributors = 0
+
+        campaigns.forEach(campaign => {
+          totalRaised += usdcToDisplay(campaign.amountRaised)
+          totalContributors += campaign.backerCount
+        })
+
+        setStats({
+          totalRaised,
+          totalContributors,
+          totalCampaigns: campaigns.length
+        })
+
+        // Get latest campaign (sorted by createdAt descending)
+        if (campaigns.length > 0) {
+          const sorted = [...campaigns].sort((a, b) => b.createdAt - a.createdAt)
+          setLatestCampaign(sorted[0])
+        }
+      } catch (err) {
+        console.error('Failed to fetch stats:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadStats()
+  }, [fetchAllCampaigns])
 
   return (
     <section className="relative min-h-screen px-6 pt-24 pb-16 flex items-center overflow-hidden bg-background">
@@ -206,36 +331,42 @@ export default function Hero() {
               <Link href="/create">
                 <Button
                   size="lg"
-                  className="px-8 py-7 rounded-full text-lg font-semibold bg-hope text-white hover:bg-hope/90 glow-hope group"
+                  className="px-8 py-7 rounded-xl text-lg font-semibold bg-hope text-white hover:bg-hope/90 glow-hope group"
                 >
                   Start Campaign
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 py-7 rounded-full text-lg font-semibold hover:border-hope/50 hover:bg-hope/5 group"
-              >
-                <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </Button>
             </motion.div>
 
-            {/* Stats row */}
+            {/* Stats row - REAL DATA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-wrap gap-4 pt-4"
             >
-              <StatBadge icon={TrendingUp} value="$2.4M+" label="Total Raised" />
-              <StatBadge icon={Users} value="48K+" label="Contributors" />
-              <StatBadge icon={Zap} value="<1s" label="Finality" />
+              <StatBadge
+                icon={TrendingUp}
+                value={`$${formatNumber(stats.totalRaised)}`}
+                label="Total Raised"
+                isLoading={isLoading}
+              />
+              <StatBadge
+                icon={Users}
+                value={formatNumber(stats.totalContributors)}
+                label="Contributors"
+                isLoading={isLoading}
+              />
+              <StatBadge
+                icon={Zap}
+                value="<1s"
+                label="Finality"
+              />
             </motion.div>
           </div>
 
-          {/* Right content - 3D Card */}
+          {/* Right content - 3D Card with REAL campaign */}
           <motion.div
             style={{
               rotateX: springRotateX,
@@ -260,8 +391,8 @@ export default function Hero() {
               style={{ transform: 'translateZ(-30px)' }}
             />
 
-            {/* Main campaign card */}
-            <CampaignCard className="relative z-10" />
+            {/* Main campaign card - REAL DATA */}
+            <CampaignCard campaign={latestCampaign} isLoading={isLoading} className="relative z-10" />
 
             {/* Secondary floating elements */}
             <motion.div
@@ -277,8 +408,10 @@ export default function Hero() {
                     <TrendingUp className="w-4 h-4 text-hope" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Just funded</p>
-                    <p className="font-semibold text-sm">+$2,400</p>
+                    <p className="text-xs text-muted-foreground">Total Campaigns</p>
+                    <p className="font-semibold text-sm">
+                      {isLoading ? '...' : stats.totalCampaigns}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -299,8 +432,10 @@ export default function Hero() {
                     ))}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">+127 backers</p>
-                    <p className="text-xs text-muted-foreground">this week</p>
+                    <p className="font-semibold text-sm">
+                      {isLoading ? '...' : `${formatNumber(stats.totalContributors)} backers`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">total contributors</p>
                   </div>
                 </div>
               </div>
@@ -308,29 +443,6 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="flex flex-col items-center gap-2 text-muted-foreground"
-        >
-          <span className="text-xs font-mono-alt uppercase tracking-widest">Scroll</span>
-          <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center pt-2">
-            <motion.div
-              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-hope rounded-full"
-            />
-          </div>
-        </motion.div>
-      </motion.div>
     </section>
   )
 }

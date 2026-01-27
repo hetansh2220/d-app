@@ -2,13 +2,14 @@
 
 import { motion, useInView, useSpring, useTransform } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
+import { useHopeRise, usdcToDisplay } from '@/lib/hooks/useHopeRise'
 
-const stats = [
-  { value: 2.4, suffix: 'M+', label: 'Total Raised', prefix: '$' },
-  { value: 1250, suffix: '+', label: 'Campaigns Funded', prefix: '' },
-  { value: 48000, suffix: '+', label: 'Contributors', prefix: '' },
-  { value: 89, suffix: '', label: 'Countries', prefix: '' },
-]
+interface PlatformStats {
+  totalRaised: number
+  totalCampaigns: number
+  totalContributors: number
+  totalFunded: number
+}
 
 function AnimatedNumber({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -66,6 +67,57 @@ const itemVariants = {
 }
 
 export default function Stats() {
+  const { fetchAllCampaigns } = useHopeRise()
+  const [platformStats, setPlatformStats] = useState<PlatformStats>({
+    totalRaised: 0,
+    totalCampaigns: 0,
+    totalContributors: 0,
+    totalFunded: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const campaigns = await fetchAllCampaigns()
+
+        let totalRaised = 0
+        let totalContributors = 0
+        let totalFunded = 0
+
+        campaigns.forEach(campaign => {
+          totalRaised += usdcToDisplay(campaign.amountRaised)
+          totalContributors += campaign.backerCount
+          // Count as funded if reached goal
+          if (campaign.amountRaised >= campaign.fundingGoal) {
+            totalFunded++
+          }
+        })
+
+        setPlatformStats({
+          totalRaised,
+          totalCampaigns: campaigns.length,
+          totalContributors,
+          totalFunded,
+        })
+      } catch (err) {
+        console.error('Failed to fetch platform stats:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadStats()
+  }, [fetchAllCampaigns])
+
+  // Build stats array from real data
+  const stats = [
+    { value: platformStats.totalRaised, suffix: '', label: 'Total Raised', prefix: '$' },
+    { value: platformStats.totalCampaigns, suffix: '', label: 'Total Campaigns', prefix: '' },
+    { value: platformStats.totalContributors, suffix: '', label: 'Contributors', prefix: '' },
+    { value: platformStats.totalFunded, suffix: '', label: 'Funded', prefix: '' },
+  ]
+
   return (
     <section className="relative py-24 px-6 overflow-hidden">
       {/* Decorative glow */}
@@ -97,7 +149,11 @@ export default function Stats() {
 
                 {/* Number */}
                 <div className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-2 group-hover:text-hope transition-colors duration-300">
-                  <AnimatedNumber value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
+                  {isLoading ? (
+                    <span className="inline-block w-24 h-12 bg-secondary rounded animate-pulse" />
+                  ) : (
+                    <AnimatedNumber value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
+                  )}
                 </div>
 
                 {/* Label */}

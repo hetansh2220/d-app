@@ -5,7 +5,7 @@ import { ArrowUpRight, Users, Clock, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { useHopeRise, type Campaign } from '@/lib/hooks/useHopeRise'
+import { useHopeRise } from '@/lib/hooks/useHopeRise'
 import { usdcToDisplay } from '@/lib/solana/program'
 import { ipfsToHttp } from '@/lib/ipfs'
 
@@ -53,8 +53,11 @@ export default function Campaigns() {
         const blockchainCampaigns = await fetchAllCampaigns()
         const now = Math.floor(Date.now() / 1000)
 
-        const displayCampaigns: DisplayCampaign[] = blockchainCampaigns
-          .slice(0, 3) // Show top 3 campaigns
+        // Sort by createdAt descending (latest first) and take top 3
+        const sortedCampaigns = [...blockchainCampaigns].sort((a, b) => b.createdAt - a.createdAt)
+
+        const displayCampaigns: DisplayCampaign[] = sortedCampaigns
+          .slice(0, 3) // Show latest 3 campaigns
           .map((c) => ({
             id: c.publicKey.toString(),
             title: c.title,

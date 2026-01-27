@@ -27,6 +27,12 @@ export async function uploadToIPFS(file: File): Promise<string> {
   return `ipfs://${data.IpfsHash}`;
 }
 
+export async function uploadTextToIPFS(text: string, filename = 'story.txt'): Promise<string> {
+  const blob = new Blob([text], { type: 'text/plain' });
+  const file = new File([blob], filename, { type: 'text/plain' });
+  return uploadToIPFS(file);
+}
+
 export function ipfsToHttp(ipfsUrl: string): string {
   if (!ipfsUrl || ipfsUrl === 'ipfs://placeholder') return '';
   const cid = ipfsUrl.replace('ipfs://', '');

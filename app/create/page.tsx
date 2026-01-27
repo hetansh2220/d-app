@@ -23,7 +23,7 @@ import Navbar from '@/components/landing-page/Navbar'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useHopeRise } from '@/lib/hooks/useHopeRise'
-import { uploadToIPFS } from '@/lib/ipfs'
+import { uploadToIPFS, uploadTextToIPFS } from '@/lib/ipfs'
 
 const categories = [
   { id: 'environment', label: 'Environment', icon: '🌱' },
@@ -148,13 +148,23 @@ export default function CreateCampaignPage() {
         setIsUploadingImage(false)
       }
 
+      // Upload story to IPFS
+      let storyUrl = 'ipfs://placeholder'
+      if (formData.story) {
+        try {
+          storyUrl = await uploadTextToIPFS(formData.story)
+        } catch (err) {
+          console.error('Failed to upload story:', err)
+        }
+      }
+
       // Create the campaign on-chain
       const result = await createCampaign({
         title: formData.title,
         shortDescription: formData.shortDescription,
         category: formData.category,
         coverImageUrl,
-        storyUrl: `ipfs://${Buffer.from(formData.story).toString('base64').slice(0, 50)}`,
+        storyUrl,
         fundingGoalUsdc: Number(formData.fundingGoal), // Funding goal in USDC
         durationDays: Number(formData.duration),
       })

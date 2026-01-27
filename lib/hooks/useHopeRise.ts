@@ -524,6 +524,39 @@ export function useHopeRise() {
     }
   }, [getReadOnlyProgram]);
 
+  // Fetch all contributions for a campaign (for live activity feed)
+  const fetchAllContributions = useCallback(async (
+    campaignPubkey: PublicKey
+  ): Promise<Contribution[]> => {
+    try {
+      const program = getReadOnlyProgram();
+      // Filter contributions by campaign pubkey (offset 8 is after discriminator)
+      const accounts = await program.account.contribution.all([
+        {
+          memcmp: {
+            offset: 8, // after discriminator
+            bytes: campaignPubkey.toBase58(),
+          },
+        },
+      ]);
+
+      return accounts
+        .map((acc) => ({
+          publicKey: acc.publicKey,
+          campaign: acc.account.campaign as PublicKey,
+          contributor: acc.account.contributor as PublicKey,
+          amount: (acc.account.amount as BN).toNumber(),
+          contributedAt: (acc.account.contributedAt as BN).toNumber(),
+          refundClaimed: acc.account.refundClaimed as boolean,
+          bump: acc.account.bump as number,
+        }))
+        .sort((a, b) => b.contributedAt - a.contributedAt); // Sort by newest first
+    } catch (err) {
+      console.error('Failed to fetch contributions:', err);
+      return [];
+    }
+  }, [getReadOnlyProgram]);
+
   // Check if campaign counter is initialized
   const isInitialized = useCallback(async (): Promise<boolean> => {
     try {
@@ -559,6 +592,7 @@ export function useHopeRise() {
     fetchCampaign,
     fetchMilestones,
     fetchContribution,
+    fetchAllContributions,
     isInitialized,
 
     // Helpers (USDC conversion)

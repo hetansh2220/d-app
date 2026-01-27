@@ -26,6 +26,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useHopeRise, usdcToDisplay, type Campaign, type Milestone } from '@/lib/hooks/useHopeRise'
 import { PublicKey } from '@solana/web3.js'
 import { ipfsToHttp } from '@/lib/ipfs'
+import FundingActivity from '@/components/campaigns/FundingActivity'
 
 const fundingTiers = [
   { amount: 10, label: 'Supporter', description: 'Show your support for this cause' },
@@ -38,7 +39,7 @@ interface DisplayCampaign {
   id: string
   title: string
   description: string
-  longDescription: string
+  story: string
   raised: number
   goal: number
   backers: number
@@ -51,6 +52,7 @@ interface DisplayCampaign {
   faqs: { question: string; answer: string }[]
   publicKey: PublicKey
   coverImageUrl?: string
+  storyUrl?: string
 }
 
 export default function CampaignDetailPage() {
@@ -82,11 +84,25 @@ export default function CampaignDetailPage() {
           const now = Math.floor(Date.now() / 1000)
           const milestones = await fetchMilestones(pubkey)
 
+          // Fetch story content from IPFS if available
+          let storyContent = ''
+          if (blockchainCampaign.storyUrl) {
+            try {
+              const storyUrl = ipfsToHttp(blockchainCampaign.storyUrl)
+              const response = await fetch(storyUrl)
+              if (response.ok) {
+                storyContent = await response.text()
+              }
+            } catch (err) {
+              console.error('Failed to fetch story:', err)
+            }
+          }
+
           setCampaign({
             id: blockchainCampaign.publicKey.toString(),
             title: blockchainCampaign.title,
             description: blockchainCampaign.shortDescription,
-            longDescription: `Campaign created on Hope Rise blockchain platform.\n\nFunding Goal: ${usdcToDisplay(blockchainCampaign.fundingGoal).toFixed(2)} USDC\nAmount Raised: ${usdcToDisplay(blockchainCampaign.amountRaised).toFixed(2)} USDC\n\nThis campaign is stored on the Solana blockchain and all contributions are transparent and verifiable.`,
+            story: storyContent || blockchainCampaign.shortDescription,
             raised: usdcToDisplay(blockchainCampaign.amountRaised),
             goal: usdcToDisplay(blockchainCampaign.fundingGoal),
             backers: blockchainCampaign.backerCount,
@@ -103,6 +119,7 @@ export default function CampaignDetailPage() {
             faqs: [],
             publicKey: blockchainCampaign.publicKey,
             coverImageUrl: blockchainCampaign.coverImageUrl,
+            storyUrl: blockchainCampaign.storyUrl,
           })
         } else {
           setCampaign(null)
@@ -119,6 +136,19 @@ export default function CampaignDetailPage() {
   }, [id, fetchCampaign, fetchMilestones])
 
   const progress = campaign ? (campaign.raised / campaign.goal) * 100 : 0
+
+  // Refresh campaign data (used by FundingActivity when new contributions detected)
+  const refreshCampaignData = useCallback(async () => {
+    if (!campaign) return
+    const updatedCampaign = await fetchCampaign(campaign.publicKey)
+    if (updatedCampaign) {
+      setCampaign(prev => prev ? {
+        ...prev,
+        raised: usdcToDisplay(updatedCampaign.amountRaised),
+        backers: updatedCampaign.backerCount,
+      } : null)
+    }
+  }, [campaign, fetchCampaign])
 
   const handleFund = async () => {
     if (!connected || !campaign) {
@@ -138,14 +168,7 @@ export default function CampaignDetailPage() {
       setCustomAmount('')
 
       // Refresh campaign data
-      const updatedCampaign = await fetchCampaign(campaign.publicKey)
-      if (updatedCampaign) {
-        setCampaign(prev => prev ? {
-          ...prev,
-          raised: usdcToDisplay(updatedCampaign.amountRaised),
-          backers: updatedCampaign.backerCount,
-        } : null)
-      }
+      await refreshCampaignData()
 
       setTimeout(() => setFundingSuccess(false), 5000)
     } catch (err: unknown) {
@@ -225,9 +248,6 @@ export default function CampaignDetailPage() {
                   <div className="absolute inset-0 bg-grid-pattern opacity-20" />
                 )}
                 <div className="absolute top-4 right-4 flex gap-2">
-                  <span className="px-3 py-1 bg-hope/90 text-black text-xs font-bold rounded-full">
-                    On-Chain
-                  </span>
                   <span className="px-4 py-2 bg-background/90 backdrop-blur-sm text-sm font-medium rounded-full border border-border">
                     {campaign.category}
                   </span>
@@ -288,9 +308,9 @@ export default function CampaignDetailPage() {
 
                 {/* Tab content */}
                 {activeTab === 'about' && (
-                  <div className="prose prose-invert max-w-none">
-                    <div className="text-muted-foreground whitespace-pre-line leading-relaxed">
-                      {campaign.longDescription}
+                  <div className="p-6 bg-card border border-border rounded-xl overflow-hidden">
+                    <div className="text-muted-foreground whitespace-pre-line leading-relaxed wrap-break-word">
+                      {campaign.story}
                     </div>
                   </div>
                 )}
@@ -337,7 +357,7 @@ export default function CampaignDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="sticky top-28 p-6 bg-card border border-border rounded-2xl"
+                className=" top-28 p-6 bg-card border border-border rounded-2xl"
               >
                 {/* Progress */}
                 <div className="mb-6">
@@ -453,21 +473,6 @@ export default function CampaignDetailPage() {
                   <WalletMultiButton className="!w-full !py-6 !rounded-xl !text-lg !font-semibold !bg-hope !text-black hover:!bg-hope/90 !justify-center !mb-4" />
                 )}
 
-                {/* Share buttons */}
-                <div className="flex items-center justify-center gap-3">
-                  <Button variant="outline" size="sm" className="rounded-full">
-                    <Heart className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="rounded-full">
-                    <Twitter className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="rounded-full">
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="rounded-full">
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </div>
 
                 {/* Milestones */}
                 {campaign.milestones.length > 0 && (
@@ -523,6 +528,18 @@ export default function CampaignDetailPage() {
                     </a>
                   </div>
                 </div>
+              </motion.div>
+
+              {/* Live Funding Activity */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <FundingActivity
+                  campaignPubkey={campaign.publicKey}
+                  onNewContribution={refreshCampaignData}
+                />
               </motion.div>
             </div>
           </div>
