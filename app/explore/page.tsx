@@ -1,12 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Search, Filter, TrendingUp, Clock, Users, ArrowUpRight, Sparkles, Loader2 } from 'lucide-react'
+import { Search, Filter, TrendingUp, Clock, Users, ArrowUpRight, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Navbar from '@/components/landing-page/Navbar'
-import { useHopeRise, usdcToDisplay, type Campaign } from '@/lib/hooks/useHopeRise'
+import { useCampaigns } from '@/lib/hooks/useCampaignQueries'
+import { usdcToDisplay } from '@/lib/solana/program'
 import { ipfsToHttp } from '@/lib/ipfs'
 
 const categories = ['All', 'Environment', 'Education', 'Healthcare', 'Technology', 'Community', 'Arts']
@@ -28,6 +29,42 @@ const itemVariants = {
     y: 0,
     transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
   },
+}
+
+function CampaignCardSkeleton() {
+  return (
+    <div className="relative bg-card border border-border rounded-2xl overflow-hidden h-full">
+      {/* Image skeleton */}
+      <div className="relative h-48 bg-secondary animate-pulse">
+        <div className="absolute top-4 right-4">
+          <div className="w-20 h-6 bg-muted rounded-full" />
+        </div>
+      </div>
+      {/* Content skeleton */}
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-6 h-6 bg-secondary rounded-full animate-pulse" />
+          <div className="h-3 bg-secondary rounded w-16 animate-pulse" />
+        </div>
+        <div className="h-5 bg-secondary rounded w-3/4 mb-2 animate-pulse" />
+        <div className="h-4 bg-secondary rounded w-full mb-1 animate-pulse" />
+        <div className="h-4 bg-secondary rounded w-2/3 mb-5 animate-pulse" />
+        {/* Progress skeleton */}
+        <div className="mb-4">
+          <div className="flex justify-between mb-2">
+            <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+            <div className="h-4 bg-secondary rounded w-12 animate-pulse" />
+          </div>
+          <div className="h-2 bg-secondary rounded-full animate-pulse" />
+        </div>
+        {/* Meta skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+          <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 interface DisplayCampaign {
@@ -127,45 +164,29 @@ function CampaignCard({ campaign }: { campaign: DisplayCampaign }) {
 export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
-  const [blockchainCampaigns, setBlockchainCampaigns] = useState<DisplayCampaign[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { fetchAllCampaigns } = useHopeRise()
+  const { data: campaigns, isLoading } = useCampaigns()
 
-  // Fetch campaigns from blockchain on mount
-  useEffect(() => {
-    const loadCampaigns = async () => {
-      try {
-        const campaigns = await fetchAllCampaigns()
-        const now = Math.floor(Date.now() / 1000)
+  // Transform and filter campaigns
+  const allCampaigns = useMemo((): DisplayCampaign[] => {
+    if (!campaigns) return []
 
-        const displayCampaigns: DisplayCampaign[] = campaigns.map((c) => ({
-          id: c.publicKey.toString(),
-          title: c.title,
-          description: c.shortDescription,
-          raised: usdcToDisplay(c.amountRaised), // Convert from USDC base units to display
-          goal: usdcToDisplay(c.fundingGoal),
-          backers: c.backerCount,
-          daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
-          category: c.category,
-          creator: c.creator.toString().slice(0, 4) + '...' + c.creator.toString().slice(-4),
-          featured: c.amountRaised > c.fundingGoal * 0.5,
-          publicKey: c.publicKey.toString(),
-          coverImageUrl: c.coverImageUrl,
-        }))
+    const now = Math.floor(Date.now() / 1000)
 
-        setBlockchainCampaigns(displayCampaigns)
-      } catch (err) {
-        console.error('Failed to fetch blockchain campaigns:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadCampaigns()
-  }, [fetchAllCampaigns])
-
-  // Use only blockchain campaigns
-  const allCampaigns: DisplayCampaign[] = blockchainCampaigns
+    return campaigns.map((c) => ({
+      id: c.publicKey.toString(),
+      title: c.title,
+      description: c.shortDescription,
+      raised: usdcToDisplay(c.amountRaised),
+      goal: usdcToDisplay(c.fundingGoal),
+      backers: c.backerCount,
+      daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
+      category: c.category,
+      creator: c.creator.toString().slice(0, 4) + '...' + c.creator.toString().slice(-4),
+      featured: c.amountRaised > c.fundingGoal * 0.5,
+      publicKey: c.publicKey.toString(),
+      coverImageUrl: c.coverImageUrl,
+    }))
+  }, [campaigns])
 
   const filteredCampaigns = allCampaigns.filter((campaign) => {
     const matchesCategory = activeCategory === 'All' || campaign.category === activeCategory
@@ -264,9 +285,10 @@ export default function ExplorePage() {
 
           {/* Campaign grid */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-hope" />
-              <span className="ml-3 text-muted-foreground">Loading campaigns...</span>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <CampaignCardSkeleton key={i} />
+              ))}
             </div>
           ) : (
             <motion.div

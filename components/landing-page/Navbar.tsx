@@ -95,9 +95,6 @@ export default function Navbar() {
             whileHover={{ scale: 1.02 }}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <div className="w-8 h-8 bg-hope rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">F</span>
-            </div>
             <span className="font-display font-bold text-xl tracking-wider">FUNDRA</span>
           </motion.div>
         </Link>

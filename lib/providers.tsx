@@ -10,8 +10,20 @@ import {
   LedgerWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { ThemeProvider } from 'next-themes';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import '@solana/wallet-adapter-react-ui/styles.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  },
+});
 
 const SOLANA_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com';
 
@@ -27,17 +39,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <ConnectionProvider endpoint={SOLANA_RPC}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>{children}</WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <ConnectionProvider endpoint={SOLANA_RPC}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>{children}</WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

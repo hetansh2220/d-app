@@ -1,9 +1,9 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { PublicKey } from '@solana/web3.js'
-import { useHopeRise, type Contribution } from '@/lib/hooks/useHopeRise'
+import { useContributions } from '@/lib/hooks/useCampaignQueries'
 import { usdcToDisplay } from '@/lib/solana/program'
 import { Users, Clock, TrendingUp, RefreshCw } from 'lucide-react'
 
@@ -28,50 +28,27 @@ function shortenAddress(address: string): string {
 }
 
 export default function FundingActivity({ campaignPubkey, onNewContribution }: FundingActivityProps) {
-  const { fetchAllContributions } = useHopeRise()
-  const [contributions, setContributions] = useState<Contribution[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [lastCount, setLastCount] = useState(0)
-  const [isPolling, setIsPolling] = useState(false)
+  const pubkeyString = campaignPubkey.toString()
+  const lastCountRef = useRef(0)
 
-  const loadContributions = useCallback(async () => {
-    try {
-      const data = await fetchAllContributions(campaignPubkey)
+  // Use TanStack Query with automatic 10-second polling
+  const { data: contributions = [], isLoading, isFetching, refetch } = useContributions(pubkeyString, {
+    refetchInterval: 10000,
+  })
 
-      // Check if there are new contributions
-      if (data.length > lastCount && lastCount > 0) {
-        onNewContribution?.()
-      }
-
-      setLastCount(data.length)
-      setContributions(data)
-    } catch (err) {
-      console.error('Failed to fetch contributions:', err)
-    } finally {
-      setIsLoading(false)
-      setIsPolling(false)
+  // Detect new contributions and notify parent
+  useEffect(() => {
+    if (contributions.length > lastCountRef.current && lastCountRef.current > 0) {
+      onNewContribution?.()
     }
-  }, [fetchAllContributions, campaignPubkey, lastCount, onNewContribution])
-
-  // Initial load
-  useEffect(() => {
-    loadContributions()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Poll for updates every 10 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsPolling(true)
-      loadContributions()
-    }, 10000)
-
-    return () => clearInterval(interval)
-  }, [loadContributions])
+    lastCountRef.current = contributions.length
+  }, [contributions.length, onNewContribution])
 
   const manualRefresh = () => {
-    setIsPolling(true)
-    loadContributions()
+    refetch()
   }
+
+  const isPolling = isFetching && !isLoading
 
   if (isLoading) {
     return (
@@ -80,9 +57,24 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
           <TrendingUp className="w-5 h-5 text-hope" />
           <h3 className="font-display font-semibold">Live Activity</h3>
         </div>
-        <div className="flex items-center justify-center py-8">
-          <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-sm text-muted-foreground">Loading activity...</span>
+        {/* Skeleton loading */}
+        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border">
+          <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+          <div className="h-4 bg-secondary rounded w-24 animate-pulse" />
+        </div>
+        <div className="space-y-1">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between py-3 px-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-secondary rounded-full animate-pulse" />
+                <div>
+                  <div className="h-4 bg-secondary rounded w-20 mb-1 animate-pulse" />
+                  <div className="h-3 bg-secondary rounded w-12 animate-pulse" />
+                </div>
+              </div>
+              <div className="h-4 bg-secondary rounded w-16 animate-pulse" />
+            </div>
+          ))}
         </div>
       </div>
     )

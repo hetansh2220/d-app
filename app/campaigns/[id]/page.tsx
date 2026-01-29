@@ -16,17 +16,124 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react'
+
+function CampaignDetailSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Back button skeleton */}
+      <div className="pt-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="h-10 w-32 bg-secondary rounded animate-pulse mb-6" />
+        </div>
+      </div>
+
+      <div className="px-6 pb-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main content skeleton */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Hero image skeleton */}
+              <div className="relative h-64 md:h-96 bg-secondary rounded-2xl animate-pulse" />
+
+              {/* Title skeleton */}
+              <div>
+                <div className="h-10 bg-secondary rounded w-3/4 mb-4 animate-pulse" />
+                <div className="h-5 bg-secondary rounded w-full mb-2 animate-pulse" />
+                <div className="h-5 bg-secondary rounded w-2/3 animate-pulse" />
+              </div>
+
+              {/* Tabs skeleton */}
+              <div className="flex gap-1 p-1 bg-secondary rounded-xl mb-6 animate-pulse h-14" />
+
+              {/* Content skeleton */}
+              <div className="p-6 bg-card border border-border rounded-xl">
+                <div className="space-y-3">
+                  <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+                  <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+                  <div className="h-4 bg-secondary rounded w-3/4 animate-pulse" />
+                  <div className="h-4 bg-secondary rounded w-full animate-pulse" />
+                  <div className="h-4 bg-secondary rounded w-5/6 animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar skeleton */}
+            <div className="space-y-6">
+              {/* Funding card skeleton */}
+              <div className="p-6 bg-card border border-border rounded-2xl">
+                <div className="mb-6">
+                  <div className="flex justify-between mb-2">
+                    <div className="h-8 bg-secondary rounded w-32 animate-pulse" />
+                    <div className="h-6 bg-secondary rounded w-24 animate-pulse" />
+                  </div>
+                  <div className="h-3 bg-secondary rounded-full mb-4 animate-pulse" />
+                  <div className="grid grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="text-center">
+                        <div className="h-5 bg-secondary rounded w-12 mx-auto mb-1 animate-pulse" />
+                        <div className="h-3 bg-secondary rounded w-16 mx-auto animate-pulse" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tiers skeleton */}
+                <div className="space-y-3 mb-6">
+                  <div className="h-4 bg-secondary rounded w-32 animate-pulse" />
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="p-3 border border-border rounded-xl">
+                        <div className="h-5 bg-secondary rounded w-16 mb-1 animate-pulse" />
+                        <div className="h-3 bg-secondary rounded w-12 animate-pulse" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Button skeleton */}
+                <div className="h-14 bg-secondary rounded-xl animate-pulse" />
+              </div>
+
+              {/* Activity skeleton */}
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="h-6 bg-secondary rounded w-32 mb-4 animate-pulse" />
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-secondary rounded-full animate-pulse" />
+                        <div>
+                          <div className="h-4 bg-secondary rounded w-20 mb-1 animate-pulse" />
+                          <div className="h-3 bg-secondary rounded w-12 animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="h-4 bg-secondary rounded w-16 animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Navbar from '@/components/landing-page/Navbar'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { useHopeRise, usdcToDisplay, type Campaign, type Milestone } from '@/lib/hooks/useHopeRise'
+import { useHopeRise } from '@/lib/hooks/useHopeRise'
+import { useCampaign, useMilestones } from '@/lib/hooks/useCampaignQueries'
+import { usdcToDisplay } from '@/lib/solana/program'
 import { PublicKey } from '@solana/web3.js'
 import { ipfsToHttp } from '@/lib/ipfs'
 import FundingActivity from '@/components/campaigns/FundingActivity'
+import { useQueryClient } from '@tanstack/react-query'
+import { campaignKeys } from '@/lib/hooks/useCampaignQueries'
 
 const fundingTiers = [
   { amount: 10, label: 'Supporter', description: 'Show your support for this cause' },
@@ -60,10 +167,14 @@ export default function CampaignDetailPage() {
   const id = params.id as string
 
   const { connected } = useWallet()
-  const { fetchCampaign, fetchMilestones, fundCampaign, loading, publicKey } = useHopeRise()
+  const { fundCampaign, loading, publicKey } = useHopeRise()
+  const queryClient = useQueryClient()
 
-  const [campaign, setCampaign] = useState<DisplayCampaign | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  // Use TanStack Query for data fetching
+  const { data: blockchainCampaign, isLoading: isCampaignLoading } = useCampaign(id)
+  const { data: milestones } = useMilestones(id)
+
+  const [storyContent, setStoryContent] = useState('')
   const [selectedTier, setSelectedTier] = useState<number | null>(null)
   const [customAmount, setCustomAmount] = useState('')
   const [activeTab, setActiveTab] = useState<'about' | 'updates' | 'faq'>('about')
@@ -71,84 +182,64 @@ export default function CampaignDetailPage() {
   const [fundingError, setFundingError] = useState<string | null>(null)
   const [fundingSuccess, setFundingSuccess] = useState(false)
 
-  // Load campaign data from blockchain
+  // Fetch story content from IPFS when campaign data is available
   useEffect(() => {
-    const loadCampaign = async () => {
-      setIsLoading(true)
-
-      try {
-        const pubkey = new PublicKey(id)
-        const blockchainCampaign = await fetchCampaign(pubkey)
-
-        if (blockchainCampaign) {
-          const now = Math.floor(Date.now() / 1000)
-          const milestones = await fetchMilestones(pubkey)
-
-          // Fetch story content from IPFS if available
-          let storyContent = ''
-          if (blockchainCampaign.storyUrl) {
-            try {
-              const storyUrl = ipfsToHttp(blockchainCampaign.storyUrl)
-              const response = await fetch(storyUrl)
-              if (response.ok) {
-                storyContent = await response.text()
-              }
-            } catch (err) {
-              console.error('Failed to fetch story:', err)
-            }
+    const fetchStory = async () => {
+      if (blockchainCampaign?.storyUrl) {
+        try {
+          const storyUrl = ipfsToHttp(blockchainCampaign.storyUrl)
+          const response = await fetch(storyUrl)
+          if (response.ok) {
+            const text = await response.text()
+            setStoryContent(text)
           }
-
-          setCampaign({
-            id: blockchainCampaign.publicKey.toString(),
-            title: blockchainCampaign.title,
-            description: blockchainCampaign.shortDescription,
-            story: storyContent || blockchainCampaign.shortDescription,
-            raised: usdcToDisplay(blockchainCampaign.amountRaised),
-            goal: usdcToDisplay(blockchainCampaign.fundingGoal),
-            backers: blockchainCampaign.backerCount,
-            daysLeft: Math.max(0, Math.floor((blockchainCampaign.deadline - now) / 86400)),
-            category: blockchainCampaign.category,
-            creator: blockchainCampaign.creator.toString().slice(0, 4) + '...' + blockchainCampaign.creator.toString().slice(-4),
-            creatorWallet: blockchainCampaign.creator.toString(),
-            updates: [],
-            milestones: milestones.map(m => ({
-              title: m.title,
-              amount: usdcToDisplay(m.targetAmount),
-              completed: m.isCompleted,
-            })),
-            faqs: [],
-            publicKey: blockchainCampaign.publicKey,
-            coverImageUrl: blockchainCampaign.coverImageUrl,
-            storyUrl: blockchainCampaign.storyUrl,
-          })
-        } else {
-          setCampaign(null)
+        } catch (err) {
+          console.error('Failed to fetch story:', err)
         }
-      } catch (err) {
-        console.error('Failed to fetch campaign:', err)
-        setCampaign(null)
       }
-
-      setIsLoading(false)
     }
+    fetchStory()
+  }, [blockchainCampaign?.storyUrl])
 
-    loadCampaign()
-  }, [id, fetchCampaign, fetchMilestones])
+  // Transform blockchain data to display format
+  const campaign = useMemo((): DisplayCampaign | null => {
+    if (!blockchainCampaign) return null
+
+    const now = Math.floor(Date.now() / 1000)
+
+    return {
+      id: blockchainCampaign.publicKey.toString(),
+      title: blockchainCampaign.title,
+      description: blockchainCampaign.shortDescription,
+      story: storyContent || blockchainCampaign.shortDescription,
+      raised: usdcToDisplay(blockchainCampaign.amountRaised),
+      goal: usdcToDisplay(blockchainCampaign.fundingGoal),
+      backers: blockchainCampaign.backerCount,
+      daysLeft: Math.max(0, Math.floor((blockchainCampaign.deadline - now) / 86400)),
+      category: blockchainCampaign.category,
+      creator: blockchainCampaign.creator.toString().slice(0, 4) + '...' + blockchainCampaign.creator.toString().slice(-4),
+      creatorWallet: blockchainCampaign.creator.toString(),
+      updates: [],
+      milestones: (milestones || []).map(m => ({
+        title: m.title,
+        amount: usdcToDisplay(m.targetAmount),
+        completed: m.isCompleted,
+      })),
+      faqs: [],
+      publicKey: blockchainCampaign.publicKey,
+      coverImageUrl: blockchainCampaign.coverImageUrl,
+      storyUrl: blockchainCampaign.storyUrl,
+    }
+  }, [blockchainCampaign, milestones, storyContent])
 
   const progress = campaign ? (campaign.raised / campaign.goal) * 100 : 0
+  const isLoading = isCampaignLoading
 
-  // Refresh campaign data (used by FundingActivity when new contributions detected)
-  const refreshCampaignData = useCallback(async () => {
-    if (!campaign) return
-    const updatedCampaign = await fetchCampaign(campaign.publicKey)
-    if (updatedCampaign) {
-      setCampaign(prev => prev ? {
-        ...prev,
-        raised: usdcToDisplay(updatedCampaign.amountRaised),
-        backers: updatedCampaign.backerCount,
-      } : null)
-    }
-  }, [campaign, fetchCampaign])
+  // Refresh campaign data using TanStack Query invalidation
+  const refreshCampaignData = () => {
+    queryClient.invalidateQueries({ queryKey: campaignKeys.detail(id) })
+    queryClient.invalidateQueries({ queryKey: campaignKeys.contributions(id) })
+  }
 
   const handleFund = async () => {
     if (!connected || !campaign) {
@@ -183,10 +274,7 @@ export default function CampaignDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="pt-32 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-hope" />
-          <span className="ml-3 text-muted-foreground">Loading campaign...</span>
-        </div>
+        <CampaignDetailSkeleton />
       </div>
     )
   }

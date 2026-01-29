@@ -1,11 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Users, Clock, Loader2 } from 'lucide-react'
+import { ArrowUpRight, Users, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useHopeRise } from '@/lib/hooks/useHopeRise'
+import { useMemo } from 'react'
+import { useFeaturedCampaigns } from '@/lib/hooks/useCampaignQueries'
 import { usdcToDisplay } from '@/lib/solana/program'
 import { ipfsToHttp } from '@/lib/ipfs'
 
@@ -42,45 +42,63 @@ const itemVariants = {
   },
 }
 
+function CampaignCardSkeleton() {
+  return (
+    <div className="relative bg-card border border-border rounded-2xl overflow-hidden">
+      {/* Image skeleton */}
+      <div className="relative h-52 bg-secondary animate-pulse">
+        <div className="absolute top-4 left-4">
+          <div className="w-20 h-6 bg-muted rounded-full" />
+        </div>
+        <div className="absolute top-4 right-4">
+          <div className="w-16 h-6 bg-muted rounded-full" />
+        </div>
+      </div>
+      {/* Content skeleton */}
+      <div className="p-6">
+        <div className="h-6 bg-secondary rounded w-3/4 mb-2 animate-pulse" />
+        <div className="h-4 bg-secondary rounded w-full mb-1 animate-pulse" />
+        <div className="h-4 bg-secondary rounded w-2/3 mb-6 animate-pulse" />
+        {/* Progress skeleton */}
+        <div className="mb-4">
+          <div className="flex justify-between mb-2">
+            <div className="h-4 bg-secondary rounded w-24 animate-pulse" />
+            <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+          </div>
+          <div className="h-2 bg-secondary rounded-full animate-pulse" />
+        </div>
+        {/* Meta skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+          <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Campaigns() {
-  const { fetchAllCampaigns } = useHopeRise()
-  const [campaigns, setCampaigns] = useState<DisplayCampaign[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: blockchainCampaigns, isLoading } = useFeaturedCampaigns(3)
 
-  useEffect(() => {
-    const loadCampaigns = async () => {
-      try {
-        const blockchainCampaigns = await fetchAllCampaigns()
-        const now = Math.floor(Date.now() / 1000)
+  // Transform blockchain campaigns to display format
+  const campaigns = useMemo((): DisplayCampaign[] => {
+    if (!blockchainCampaigns) return []
 
-        // Sort by createdAt descending (latest first) and take top 3
-        const sortedCampaigns = [...blockchainCampaigns].sort((a, b) => b.createdAt - a.createdAt)
+    const now = Math.floor(Date.now() / 1000)
 
-        const displayCampaigns: DisplayCampaign[] = sortedCampaigns
-          .slice(0, 3) // Show latest 3 campaigns
-          .map((c) => ({
-            id: c.publicKey.toString(),
-            title: c.title,
-            description: c.shortDescription,
-            raised: usdcToDisplay(c.amountRaised),
-            goal: usdcToDisplay(c.fundingGoal),
-            backers: c.backerCount,
-            daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
-            category: c.category,
-            publicKey: c.publicKey.toString(),
-            coverImageUrl: c.coverImageUrl,
-          }))
-
-        setCampaigns(displayCampaigns)
-      } catch (err) {
-        console.error('Failed to fetch campaigns:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadCampaigns()
-  }, [fetchAllCampaigns])
+    return blockchainCampaigns.map((c) => ({
+      id: c.publicKey.toString(),
+      title: c.title,
+      description: c.shortDescription,
+      raised: usdcToDisplay(c.amountRaised),
+      goal: usdcToDisplay(c.fundingGoal),
+      backers: c.backerCount,
+      daysLeft: Math.max(0, Math.floor((c.deadline - now) / 86400)),
+      category: c.category,
+      publicKey: c.publicKey.toString(),
+      coverImageUrl: c.coverImageUrl,
+    }))
+  }, [blockchainCampaigns])
 
   return (
     <section className="relative py-32 px-6 overflow-hidden">
@@ -119,11 +137,12 @@ export default function Campaigns() {
           </Link>
         </motion.div>
 
-        {/* Loading state */}
+        {/* Loading skeleton */}
         {isLoading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-hope" />
-            <span className="ml-3 text-muted-foreground">Loading campaigns...</span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <CampaignCardSkeleton key={i} />
+            ))}
           </div>
         )}
 
