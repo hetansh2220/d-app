@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useInView, useSpring, useTransform } from 'framer-motion'
+import { motion, useInView, useSpring } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { useHopeRise, usdcToDisplay } from '@/lib/hooks/useHopeRise'
 
@@ -14,15 +14,9 @@ interface PlatformStats {
 function AnimatedNumber({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const [displayValue, setDisplayValue] = useState(0)
+  const [displayValue, setDisplayValue] = useState(value)
 
   const spring = useSpring(0, { stiffness: 50, damping: 30 })
-  const display = useTransform(spring, (latest) => {
-    if (value < 100) {
-      return latest.toFixed(1)
-    }
-    return Math.floor(latest).toLocaleString()
-  })
 
   useEffect(() => {
     if (isInView) {
@@ -31,16 +25,23 @@ function AnimatedNumber({ value, prefix = '', suffix = '' }: { value: number; pr
   }, [isInView, spring, value])
 
   useEffect(() => {
-    const unsubscribe = display.on('change', (v) => {
-      setDisplayValue(parseFloat(v.replace(/,/g, '')))
+    const unsubscribe = spring.on('change', (latest) => {
+      setDisplayValue(Math.floor(latest))
     })
     return unsubscribe
-  }, [display])
+  }, [spring])
+
+  // Update displayValue when value prop changes (for initial render)
+  useEffect(() => {
+    if (!isInView) {
+      setDisplayValue(Math.floor(value))
+    }
+  }, [value, isInView])
 
   return (
     <span ref={ref} className="tabular-nums">
       {prefix}
-      {value < 100 ? displayValue.toFixed(1) : Math.floor(displayValue).toLocaleString()}
+      {displayValue.toLocaleString()}
       {suffix}
     </span>
   )
@@ -68,6 +69,9 @@ const itemVariants = {
 
 export default function Stats() {
   const { fetchAllCampaigns } = useHopeRise()
+  const fetchRef = useRef(fetchAllCampaigns)
+  fetchRef.current = fetchAllCampaigns
+
   const [platformStats, setPlatformStats] = useState<PlatformStats>({
     totalRaised: 0,
     totalCampaigns: 0,
@@ -79,7 +83,7 @@ export default function Stats() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const campaigns = await fetchAllCampaigns()
+        const campaigns = await fetchRef.current()
 
         let totalRaised = 0
         let totalContributors = 0
@@ -108,7 +112,7 @@ export default function Stats() {
     }
 
     loadStats()
-  }, [fetchAllCampaigns])
+  }, [])
 
   // Build stats array from real data
   const stats = [
