@@ -20,7 +20,6 @@ import {
 function CampaignDetailSkeleton() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Back button skeleton */}
       <div className="pt-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="h-10 w-32 bg-secondary rounded animate-pulse mb-6" />
@@ -30,22 +29,14 @@ function CampaignDetailSkeleton() {
       <div className="px-6 pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main content skeleton */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Hero image skeleton */}
               <div className="relative h-64 md:h-96 bg-secondary rounded-2xl animate-pulse" />
-
-              {/* Title skeleton */}
               <div>
                 <div className="h-10 bg-secondary rounded w-3/4 mb-4 animate-pulse" />
                 <div className="h-5 bg-secondary rounded w-full mb-2 animate-pulse" />
                 <div className="h-5 bg-secondary rounded w-2/3 animate-pulse" />
               </div>
-
-              {/* Tabs skeleton */}
               <div className="flex gap-1 p-1 bg-secondary rounded-xl mb-6 animate-pulse h-14" />
-
-              {/* Content skeleton */}
               <div className="p-6 bg-card border border-border rounded-xl">
                 <div className="space-y-3">
                   <div className="h-4 bg-secondary rounded w-full animate-pulse" />
@@ -57,9 +48,7 @@ function CampaignDetailSkeleton() {
               </div>
             </div>
 
-            {/* Sidebar skeleton */}
             <div className="space-y-6">
-              {/* Funding card skeleton */}
               <div className="p-6 bg-card border border-border rounded-2xl">
                 <div className="mb-6">
                   <div className="flex justify-between mb-2">
@@ -76,8 +65,6 @@ function CampaignDetailSkeleton() {
                     ))}
                   </div>
                 </div>
-
-                {/* Tiers skeleton */}
                 <div className="space-y-3 mb-6">
                   <div className="h-4 bg-secondary rounded w-32 animate-pulse" />
                   <div className="grid grid-cols-2 gap-2">
@@ -89,12 +76,9 @@ function CampaignDetailSkeleton() {
                     ))}
                   </div>
                 </div>
-
-                {/* Button skeleton */}
                 <div className="h-14 bg-secondary rounded-xl animate-pulse" />
               </div>
 
-              {/* Activity skeleton */}
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="h-6 bg-secondary rounded w-32 mb-4 animate-pulse" />
                 <div className="space-y-3">
@@ -170,7 +154,6 @@ export default function CampaignDetailPage() {
   const { fundCampaign, loading, publicKey } = useHopeRise()
   const queryClient = useQueryClient()
 
-  // Use TanStack Query for data fetching
   const { data: blockchainCampaign, isLoading: isCampaignLoading } = useCampaign(id)
   const { data: milestones } = useMilestones(id)
 
@@ -182,7 +165,6 @@ export default function CampaignDetailPage() {
   const [fundingError, setFundingError] = useState<string | null>(null)
   const [fundingSuccess, setFundingSuccess] = useState(false)
 
-  // Fetch story content from IPFS when campaign data is available
   useEffect(() => {
     const fetchStory = async () => {
       if (blockchainCampaign?.storyUrl) {
@@ -201,7 +183,6 @@ export default function CampaignDetailPage() {
     fetchStory()
   }, [blockchainCampaign?.storyUrl])
 
-  // Transform blockchain data to display format
   const campaign = useMemo((): DisplayCampaign | null => {
     if (!blockchainCampaign) return null
 
@@ -235,7 +216,6 @@ export default function CampaignDetailPage() {
   const progress = campaign ? (campaign.raised / campaign.goal) * 100 : 0
   const isLoading = isCampaignLoading
 
-  // Refresh campaign data using TanStack Query invalidation
   const refreshCampaignData = () => {
     queryClient.invalidateQueries({ queryKey: campaignKeys.detail(id) })
     queryClient.invalidateQueries({ queryKey: campaignKeys.contributions(id) })
@@ -258,7 +238,6 @@ export default function CampaignDetailPage() {
       setSelectedTier(null)
       setCustomAmount('')
 
-      // Refresh campaign data
       await refreshCampaignData()
 
       setTimeout(() => setFundingSuccess(false), 5000)
@@ -303,7 +282,6 @@ export default function CampaignDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Back button */}
       <div className="pt-24 px-6">
         <div className="max-w-7xl mx-auto">
           <Link href="/explore">
@@ -318,9 +296,7 @@ export default function CampaignDetailPage() {
       <div className="px-6 pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Hero image */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -353,7 +329,6 @@ export default function CampaignDetailPage() {
                 </div>
               </motion.div>
 
-              {/* Title and description */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -367,7 +342,6 @@ export default function CampaignDetailPage() {
                 </p>
               </motion.div>
 
-              {/* Tabs */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -393,7 +367,6 @@ export default function CampaignDetailPage() {
                   ))}
                 </div>
 
-                {/* Tab content */}
                 {activeTab === 'about' && (
                   <div className="p-6 bg-card border border-border rounded-xl overflow-hidden">
                     <div className="text-muted-foreground whitespace-pre-line leading-relaxed wrap-break-word">
@@ -437,16 +410,13 @@ export default function CampaignDetailPage() {
               </motion.div>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
-              {/* Funding card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className=" top-28 p-6 bg-card border border-border rounded-2xl"
               >
-                {/* Progress */}
                 <div className="mb-6">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="font-display text-3xl font-bold text-hope">
@@ -480,7 +450,6 @@ export default function CampaignDetailPage() {
                   </div>
                 </div>
 
-                {/* Success message */}
                 {fundingSuccess && (
                   <div className="mb-4 p-3 bg-hope/10 border border-hope/20 rounded-xl">
                     <div className="flex items-center gap-2 text-hope">
@@ -490,7 +459,6 @@ export default function CampaignDetailPage() {
                   </div>
                 )}
 
-                {/* Error message */}
                 {fundingError && (
                   <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
                     <div className="flex items-center gap-2 text-destructive">
@@ -500,7 +468,6 @@ export default function CampaignDetailPage() {
                   </div>
                 )}
 
-                {/* Funding tiers */}
                 <div className="space-y-3 mb-6">
                   <p className="text-sm font-medium text-muted-foreground">
                     Select amount (USDC)
@@ -521,7 +488,6 @@ export default function CampaignDetailPage() {
                     ))}
                   </div>
 
-                  {/* Custom amount */}
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                       USDC
@@ -536,7 +502,6 @@ export default function CampaignDetailPage() {
                   </div>
                 </div>
 
-                {/* Fund button */}
                 {connected ? (
                   <Button
                     onClick={handleFund}
@@ -560,7 +525,6 @@ export default function CampaignDetailPage() {
                 )}
 
 
-                {/* Milestones */}
                 {campaign.milestones.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-border">
                     <p className="text-sm font-medium mb-4 flex items-center gap-2">
@@ -592,7 +556,6 @@ export default function CampaignDetailPage() {
                   </div>
                 )}
 
-                {/* Creator info */}
                 <div className="mt-6 pt-6 border-t border-border">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-hope/20 rounded-full flex items-center justify-center">
@@ -615,7 +578,6 @@ export default function CampaignDetailPage() {
                 </div>
               </motion.div>
 
-              {/* Live Funding Activity */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

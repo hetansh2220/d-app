@@ -18,7 +18,7 @@ declare_id!("BAaDjLVffrtNzgKLoUjmM9t1tWBHxMF6UFdnL1NYmQ3J");
 pub mod hope_rise {
     use super::*;
 
-    /// Initialize the global campaign counter (one-time setup)
+
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let counter = &mut ctx.accounts.campaign_counter;
         counter.count = 0;
@@ -27,7 +27,7 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Create a new crowdfunding campaign
+
     pub fn create_campaign(
         ctx: Context<CreateCampaign>,
         title: String,
@@ -38,7 +38,7 @@ pub mod hope_rise {
         funding_goal: u64,
         duration_days: u64,
     ) -> Result<()> {
-        // Validate inputs
+
         require!(title.len() <= MAX_TITLE_LENGTH, HopeRiseError::TitleTooLong);
         require!(
             short_description.len() <= MAX_DESCRIPTION_LENGTH,
@@ -60,7 +60,7 @@ pub mod hope_rise {
         let counter = &mut ctx.accounts.campaign_counter;
         let campaign = &mut ctx.accounts.campaign;
 
-        // Set campaign data
+
         campaign.campaign_id = counter.count;
         campaign.creator = ctx.accounts.creator.key();
         campaign.title = title;
@@ -80,7 +80,7 @@ pub mod hope_rise {
         campaign.milestone_count = 0;
         campaign.bump = ctx.bumps.campaign;
 
-        // Increment global counter
+
         counter.count = counter
             .count
             .checked_add(1)
@@ -89,21 +89,21 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Contribute USDC to a campaign
+
     pub fn fund_campaign(ctx: Context<FundCampaign>, amount: u64) -> Result<()> {
         require!(amount > 0, HopeRiseError::InvalidContributionAmount);
 
         let campaign = &ctx.accounts.campaign;
         let clock = Clock::get()?;
 
-        // Validate campaign state
+
         require!(campaign.is_active, HopeRiseError::CampaignNotActive);
         require!(
             clock.unix_timestamp < campaign.deadline,
             HopeRiseError::CampaignEnded
         );
 
-        // Transfer USDC from contributor's ATA to campaign vault ATA
+
         let cpi_accounts = Transfer {
             from: ctx.accounts.contributor_token_account.to_account_info(),
             to: ctx.accounts.campaign_vault.to_account_info(),
@@ -113,18 +113,18 @@ pub mod hope_rise {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, amount)?;
 
-        // Update campaign state
+
         let campaign = &mut ctx.accounts.campaign;
         let contribution = &mut ctx.accounts.contribution;
 
-        // Check if this is a new backer
+
         if contribution.amount == 0 {
             campaign.backer_count = campaign
                 .backer_count
                 .checked_add(1)
                 .ok_or(HopeRiseError::ArithmeticOverflow)?;
 
-            // Initialize contribution account
+
             contribution.campaign = campaign.key();
             contribution.contributor = ctx.accounts.contributor.key();
             contribution.contributed_at = clock.unix_timestamp;
@@ -132,7 +132,7 @@ pub mod hope_rise {
             contribution.bump = ctx.bumps.contribution;
         }
 
-        // Update amounts
+
         campaign.amount_raised = campaign
             .amount_raised
             .checked_add(amount)
@@ -146,21 +146,21 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Withdraw USDC funds (creator only, after goal met)
+
     pub fn withdraw_funds(ctx: Context<WithdrawFunds>) -> Result<()> {
         let campaign = &ctx.accounts.campaign;
 
-        // Only allow withdrawal if goal is met
+
         require!(
             campaign.amount_raised >= campaign.funding_goal,
             HopeRiseError::GoalNotMet
         );
 
-        // Get the vault balance
+
         let vault_balance = ctx.accounts.campaign_vault.amount;
         require!(vault_balance > 0, HopeRiseError::InsufficientFunds);
 
-        // Create PDA signer seeds for the campaign vault
+
         let campaign_key = ctx.accounts.campaign.key();
         let bump = ctx.bumps.campaign_vault;
         let seeds = &[
@@ -170,7 +170,7 @@ pub mod hope_rise {
         ];
         let signer_seeds = &[&seeds[..]];
 
-        // Transfer USDC from campaign vault to creator's ATA
+
         let cpi_accounts = Transfer {
             from: ctx.accounts.campaign_vault.to_account_info(),
             to: ctx.accounts.creator_token_account.to_account_info(),
@@ -183,7 +183,7 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Add a milestone to a campaign
+
     pub fn add_milestone(
         ctx: Context<AddMilestone>,
         title: String,
@@ -197,7 +197,7 @@ pub mod hope_rise {
         let campaign = &mut ctx.accounts.campaign;
         let milestone = &mut ctx.accounts.milestone;
 
-        // Set milestone data
+
         milestone.campaign = campaign.key();
         milestone.milestone_index = campaign.milestone_count;
         milestone.title = title;
@@ -205,7 +205,7 @@ pub mod hope_rise {
         milestone.is_completed = false;
         milestone.bump = ctx.bumps.milestone;
 
-        // Increment milestone count
+
         campaign.milestone_count = campaign
             .milestone_count
             .checked_add(1)
@@ -214,12 +214,12 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Mark a milestone as complete
+
     pub fn complete_milestone(ctx: Context<CompleteMilestone>) -> Result<()> {
         let campaign = &ctx.accounts.campaign;
         let milestone = &mut ctx.accounts.milestone;
 
-        // Verify milestone can be completed
+
         require!(
             !milestone.is_completed,
             HopeRiseError::MilestoneAlreadyCompleted
@@ -234,7 +234,7 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Close a campaign
+
     pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
         let campaign = &mut ctx.accounts.campaign;
 
@@ -245,12 +245,12 @@ pub mod hope_rise {
         Ok(())
     }
 
-    /// Claim USDC refund if campaign failed (goal not met)
+
     pub fn claim_refund(ctx: Context<ClaimRefund>) -> Result<()> {
         let campaign = &ctx.accounts.campaign;
         let contribution = &ctx.accounts.contribution;
 
-        // Verify refund conditions
+
         require!(!campaign.is_active, HopeRiseError::CampaignStillActive);
         require!(
             campaign.amount_raised < campaign.funding_goal,
@@ -264,7 +264,7 @@ pub mod hope_rise {
 
         let refund_amount = contribution.amount;
 
-        // Create PDA signer seeds for the campaign vault
+
         let campaign_key = ctx.accounts.campaign.key();
         let bump = ctx.bumps.campaign_vault;
         let seeds = &[
@@ -274,7 +274,7 @@ pub mod hope_rise {
         ];
         let signer_seeds = &[&seeds[..]];
 
-        // Transfer USDC refund from campaign vault to contributor's ATA
+
         let cpi_accounts = Transfer {
             from: ctx.accounts.campaign_vault.to_account_info(),
             to: ctx.accounts.contributor_token_account.to_account_info(),
@@ -284,7 +284,7 @@ pub mod hope_rise {
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
         token::transfer(cpi_ctx, refund_amount)?;
 
-        // Mark refund as claimed
+
         let contribution = &mut ctx.accounts.contribution;
         contribution.refund_claimed = true;
 
@@ -292,9 +292,9 @@ pub mod hope_rise {
     }
 }
 
-// ============================================================================
-// Account Contexts
-// ============================================================================
+
+
+
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -346,7 +346,7 @@ pub struct FundCampaign<'info> {
     )]
     pub campaign: Account<'info, Campaign>,
 
-    /// Campaign's USDC vault (PDA token account)
+
     #[account(
         init_if_needed,
         payer = contributor,
@@ -369,7 +369,7 @@ pub struct FundCampaign<'info> {
     #[account(mut)]
     pub contributor: Signer<'info>,
 
-    /// Contributor's USDC token account (ATA)
+
     #[account(
         mut,
         constraint = contributor_token_account.mint == usdc_mint.key() @ HopeRiseError::InvalidTokenAccount,
@@ -377,7 +377,7 @@ pub struct FundCampaign<'info> {
     )]
     pub contributor_token_account: Account<'info, TokenAccount>,
 
-    /// USDC mint
+
     #[account(
         constraint = usdc_mint.key().to_string() == USDC_MINT @ HopeRiseError::InvalidMint
     )]
@@ -397,7 +397,7 @@ pub struct WithdrawFunds<'info> {
     )]
     pub campaign: Account<'info, Campaign>,
 
-    /// Campaign's USDC vault (PDA token account)
+
     #[account(
         mut,
         seeds = [CAMPAIGN_VAULT_SEED, campaign.key().as_ref()],
@@ -410,7 +410,7 @@ pub struct WithdrawFunds<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
 
-    /// Creator's USDC token account (ATA)
+
     #[account(
         init_if_needed,
         payer = creator,
@@ -419,7 +419,7 @@ pub struct WithdrawFunds<'info> {
     )]
     pub creator_token_account: Account<'info, TokenAccount>,
 
-    /// USDC mint
+
     #[account(
         constraint = usdc_mint.key().to_string() == USDC_MINT @ HopeRiseError::InvalidMint
     )]
@@ -501,7 +501,7 @@ pub struct ClaimRefund<'info> {
     )]
     pub campaign: Account<'info, Campaign>,
 
-    /// Campaign's USDC vault (PDA token account)
+
     #[account(
         mut,
         seeds = [CAMPAIGN_VAULT_SEED, campaign.key().as_ref()],
@@ -522,7 +522,7 @@ pub struct ClaimRefund<'info> {
     #[account(mut)]
     pub contributor: Signer<'info>,
 
-    /// Contributor's USDC token account (ATA)
+
     #[account(
         init_if_needed,
         payer = contributor,
@@ -531,7 +531,7 @@ pub struct ClaimRefund<'info> {
     )]
     pub contributor_token_account: Account<'info, TokenAccount>,
 
-    /// USDC mint
+
     #[account(
         constraint = usdc_mint.key().to_string() == USDC_MINT @ HopeRiseError::InvalidMint
     )]

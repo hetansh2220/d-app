@@ -31,12 +31,10 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
   const pubkeyString = campaignPubkey.toString()
   const lastCountRef = useRef(0)
 
-  // Use TanStack Query with automatic 10-second polling
   const { data: contributions = [], isLoading, isFetching, refetch } = useContributions(pubkeyString, {
     refetchInterval: 10000,
   })
 
-  // Detect new contributions and notify parent
   useEffect(() => {
     if (contributions.length > lastCountRef.current && lastCountRef.current > 0) {
       onNewContribution?.()
@@ -57,7 +55,6 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
           <TrendingUp className="w-5 h-5 text-hope" />
           <h3 className="font-display font-semibold">Live Activity</h3>
         </div>
-        {/* Skeleton loading */}
         <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border">
           <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
           <div className="h-4 bg-secondary rounded w-24 animate-pulse" />
@@ -82,7 +79,6 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-hope" />
@@ -102,7 +98,6 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
         </button>
       </div>
 
-      {/* Stats */}
       <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Users className="w-4 h-4" />
@@ -114,7 +109,6 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
         </div>
       </div>
 
-      {/* Activity Feed */}
       {contributions.length === 0 ? (
         <div className="text-center py-8">
           <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-3">
@@ -141,14 +135,11 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
               >
                 <div className="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-secondary/50 transition-colors duration-200">
                   <div className="flex items-center gap-3">
-                    {/* Avatar */}
                     <div className="w-8 h-8 bg-gradient-to-br from-hope/30 to-emerald-500/30 rounded-full flex items-center justify-center">
                       <span className="text-xs font-medium">
                         {contribution.contributor.toString().slice(0, 2)}
                       </span>
                     </div>
-
-                    {/* Info */}
                     <div>
                       <p className="text-sm font-medium font-mono">
                         {shortenAddress(contribution.contributor.toString())}
@@ -158,8 +149,6 @@ export default function FundingActivity({ campaignPubkey, onNewContribution }: F
                       </p>
                     </div>
                   </div>
-
-                  {/* Amount */}
                   <div className="text-right">
                     <p className="text-sm font-semibold text-hope">
                       +{usdcToDisplay(contribution.amount).toFixed(2)} USDC

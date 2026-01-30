@@ -34,13 +34,11 @@ const itemVariants = {
 function CampaignCardSkeleton() {
   return (
     <div className="relative bg-card border border-border rounded-2xl overflow-hidden h-full">
-      {/* Image skeleton */}
       <div className="relative h-48 bg-secondary animate-pulse">
         <div className="absolute top-4 right-4">
           <div className="w-20 h-6 bg-muted rounded-full" />
         </div>
       </div>
-      {/* Content skeleton */}
       <div className="p-6">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-6 h-6 bg-secondary rounded-full animate-pulse" />
@@ -49,7 +47,6 @@ function CampaignCardSkeleton() {
         <div className="h-5 bg-secondary rounded w-3/4 mb-2 animate-pulse" />
         <div className="h-4 bg-secondary rounded w-full mb-1 animate-pulse" />
         <div className="h-4 bg-secondary rounded w-2/3 mb-5 animate-pulse" />
-        {/* Progress skeleton */}
         <div className="mb-4">
           <div className="flex justify-between mb-2">
             <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
@@ -57,7 +54,6 @@ function CampaignCardSkeleton() {
           </div>
           <div className="h-2 bg-secondary rounded-full animate-pulse" />
         </div>
-        {/* Meta skeleton */}
         <div className="flex items-center justify-between">
           <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
           <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
@@ -283,7 +279,6 @@ export default function ExplorePage() {
             </div>
           </motion.div>
 
-          {/* Campaign grid */}
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (

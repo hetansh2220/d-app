@@ -13,7 +13,6 @@ import {
   type Contribution,
 } from '@/lib/solana/program';
 
-// Query keys for cache management
 export const campaignKeys = {
   all: ['campaigns'] as const,
   lists: () => [...campaignKeys.all, 'list'] as const,
@@ -24,7 +23,6 @@ export const campaignKeys = {
   contributions: (campaignId: string) => [...campaignKeys.all, 'contributions', campaignId] as const,
 };
 
-// Helper to create read-only program
 function createReadOnlyProgram(connection: ReturnType<typeof useConnection>['connection']) {
   const provider = new AnchorProvider(
     connection,
@@ -38,7 +36,6 @@ function createReadOnlyProgram(connection: ReturnType<typeof useConnection>['con
   return new Program<HopeRise>(idl as unknown as HopeRise, provider);
 }
 
-// Transform raw campaign account to Campaign type
 function transformCampaign(acc: { publicKey: PublicKey; account: Record<string, unknown> }): Campaign {
   return {
     publicKey: acc.publicKey,
@@ -60,10 +57,6 @@ function transformCampaign(acc: { publicKey: PublicKey; account: Record<string, 
   };
 }
 
-/**
- * Hook to fetch all campaigns with caching
- * Cache time: 5 minutes
- */
 export function useCampaigns() {
   const { connection } = useConnection();
 
@@ -74,15 +67,11 @@ export function useCampaigns() {
       const accounts = await program.account.campaign.all();
       return accounts.map(transformCampaign);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 
-/**
- * Hook to fetch featured/latest campaigns for landing page
- * Fetches all but only returns top N sorted by createdAt
- */
 export function useFeaturedCampaigns(limit: number = 3) {
   const { connection } = useConnection();
 
@@ -93,7 +82,6 @@ export function useFeaturedCampaigns(limit: number = 3) {
       const accounts = await program.account.campaign.all();
       const campaigns = accounts.map(transformCampaign);
 
-      // Sort by createdAt descending and take top N
       return campaigns
         .sort((a, b) => b.createdAt - a.createdAt)
         .slice(0, limit);
@@ -103,9 +91,6 @@ export function useFeaturedCampaigns(limit: number = 3) {
   });
 }
 
-/**
- * Hook to fetch a single campaign by public key
- */
 export function useCampaign(pubkeyString: string | undefined) {
   const { connection } = useConnection();
 
@@ -143,9 +128,6 @@ export function useCampaign(pubkeyString: string | undefined) {
   });
 }
 
-/**
- * Hook to fetch milestones for a campaign
- */
 export function useMilestones(campaignPubkey: string | undefined) {
   const { connection } = useConnection();
 
@@ -179,15 +161,11 @@ export function useMilestones(campaignPubkey: string | undefined) {
         .sort((a, b) => a.milestoneIndex - b.milestoneIndex);
     },
     enabled: !!campaignPubkey,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 }
 
-/**
- * Hook to fetch contributions for a campaign with auto-refetch
- * Used for live activity feed
- */
 export function useContributions(campaignPubkey: string | undefined, options?: { refetchInterval?: number }) {
   const { connection } = useConnection();
 
@@ -221,8 +199,8 @@ export function useContributions(campaignPubkey: string | undefined, options?: {
         .sort((a, b) => b.contributedAt - a.contributedAt);
     },
     enabled: !!campaignPubkey,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000,
     gcTime: 2 * 60 * 1000,
-    refetchInterval: options?.refetchInterval || 10000, // Default 10 seconds polling
+    refetchInterval: options?.refetchInterval || 10000,
   });
 }

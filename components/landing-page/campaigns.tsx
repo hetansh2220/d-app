@@ -45,7 +45,6 @@ const itemVariants = {
 function CampaignCardSkeleton() {
   return (
     <div className="relative bg-card border border-border rounded-2xl overflow-hidden">
-      {/* Image skeleton */}
       <div className="relative h-52 bg-secondary animate-pulse">
         <div className="absolute top-4 left-4">
           <div className="w-20 h-6 bg-muted rounded-full" />
@@ -54,12 +53,10 @@ function CampaignCardSkeleton() {
           <div className="w-16 h-6 bg-muted rounded-full" />
         </div>
       </div>
-      {/* Content skeleton */}
       <div className="p-6">
         <div className="h-6 bg-secondary rounded w-3/4 mb-2 animate-pulse" />
         <div className="h-4 bg-secondary rounded w-full mb-1 animate-pulse" />
         <div className="h-4 bg-secondary rounded w-2/3 mb-6 animate-pulse" />
-        {/* Progress skeleton */}
         <div className="mb-4">
           <div className="flex justify-between mb-2">
             <div className="h-4 bg-secondary rounded w-24 animate-pulse" />
@@ -67,7 +64,6 @@ function CampaignCardSkeleton() {
           </div>
           <div className="h-2 bg-secondary rounded-full animate-pulse" />
         </div>
-        {/* Meta skeleton */}
         <div className="flex items-center justify-between">
           <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
           <div className="h-4 bg-secondary rounded w-20 animate-pulse" />
@@ -80,7 +76,6 @@ function CampaignCardSkeleton() {
 export default function Campaigns() {
   const { data: blockchainCampaigns, isLoading } = useFeaturedCampaigns(3)
 
-  // Transform blockchain campaigns to display format
   const campaigns = useMemo((): DisplayCampaign[] => {
     if (!blockchainCampaigns) return []
 
@@ -137,7 +132,6 @@ export default function Campaigns() {
           </Link>
         </motion.div>
 
-        {/* Loading skeleton */}
         {isLoading && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
@@ -146,7 +140,6 @@ export default function Campaigns() {
           </div>
         )}
 
-        {/* Empty state */}
         {!isLoading && campaigns.length === 0 && (
           <motion.div variants={itemVariants} className="text-center py-16">
             <p className="text-muted-foreground mb-4">No campaigns yet. Be the first to create one!</p>
